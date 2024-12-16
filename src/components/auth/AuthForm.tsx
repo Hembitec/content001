@@ -24,8 +24,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return;
-
     setError('');
     setIsLoading(true);
 
@@ -33,10 +31,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
       if (isForgotPassword) {
         const result = await resetPassword(email);
         if (result.success) {
-          setStatus('success');
           setMessage(result.message);
         } else {
-          setStatus('error');
           setError(result.message);
         }
       } else if (isSignUp) {
@@ -52,7 +48,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
         }
         const result = await signUpWithEmail(email, password, name.trim());
         if (result.success) {
-          onSuccess?.();
+          setMessage(result.message);
         } else {
           setError(result.message);
         }

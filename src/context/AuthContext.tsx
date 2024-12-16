@@ -15,7 +15,8 @@ import {
   EmailAuthProvider,
   sendPasswordResetEmail,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  updateProfile
 } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { auth } from '../config/firebase';
@@ -125,18 +126,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithEmail = async (email: string, password: string, name: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await userCredential.user.updateProfile({ displayName: name });
+      await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      return {
-        success: true,
-        message: 'Account created successfully! Please check your email for verification.',
-      };
+      navigate('/verify', { replace: true });
+      return { success: true, message: 'Account created successfully! Please verify your email.' };
     } catch (err: any) {
       const errorMessage = getErrorMessage(err.message);
-      return {
-        success: false,
-        message: errorMessage,
-      };
+      return { success: false, message: errorMessage };
     }
   };
 
@@ -144,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (!userCredential.user.emailVerified) {
-        // Send another verification email if user is not verified
+        // If email is not verified, send a new verification email
         await sendEmailVerification(userCredential.user);
         navigate('/verify', { replace: true });
       } else {
