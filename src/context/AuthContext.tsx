@@ -1,101 +1,171 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
+  Auth,
+  User,
+  UserCredential,
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendEmailVerification,
+  setPersistence,
   signInWithEmailAndPassword,
-  updateProfile,
-  User
+  signOut as firebaseSignOut,
+  reauthenticateWithCredential,
+  deleteUser,
+  EmailAuthProvider,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { auth } from '../config/firebase';
-import { useNavigate } from 'react-router-dom';
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
-  signInWithGoogle: () => Promise<void>;
+  loading: boolean;
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<{ success: boolean; message: string }>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  error: string | null;
-}
+  deleteAccount: (password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+const getErrorMessage = (error: string) => {
+  if (error.includes('auth/email-already-in-use')) {
+    return 'Email is already registered. Please sign in or use a different email.';
+  }
+  if (error.includes('auth/invalid-email')) {
+    return 'Invalid email address. Please check and try again.';
+  }
+  if (error.includes('auth/operation-not-allowed')) {
+    return 'Email/password sign up is not enabled. Please contact support.';
+  }
+  if (error.includes('auth/weak-password')) {
+    return 'Password is too weak. Please use a stronger password.';
+  }
+  if (error.includes('auth/user-disabled')) {
+    return 'This account has been disabled. Please contact support.';
+  }
+  if (error.includes('auth/user-not-found') || error.includes('auth/wrong-password')) {
+    return 'Invalid email or password. Please try again.';
+  }
+  return 'An error occurred. Please try again.';
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user && window.location.pathname !== '/') {
-        navigate('/');
+    let unsubscribe: () => void;
+
+    const initializeAuth = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        
+        unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+          try {
+            if (currentUser) {
+              await currentUser.reload();
+              setUser(currentUser);
+              
+              // Handle navigation based on verification status
+              const isVerifyPage = location.pathname === '/verify';
+              const isHomePage = location.pathname === '/';
+              const isDashboardPage = location.pathname === '/dashboard';
+
+              if (currentUser.emailVerified) {
+                if (isVerifyPage || isHomePage) {
+                  navigate('/dashboard', { replace: true });
+                }
+              } else {
+                if (!isVerifyPage && !isHomePage) {
+                  navigate('/verify', { replace: true });
+                }
+              }
+            } else {
+              setUser(null);
+              if (location.pathname !== '/') {
+                navigate('/', { replace: true });
+              }
+            }
+          } catch (error) {
+            console.error("Error in auth state change:", error);
+            setUser(null);
+          }
+        });
+      } catch (error) {
+        console.error("Error setting persistence:", error);
+      } finally {
+        setLoading(false);
       }
-      setUser(user);
-    });
+    };
 
-    return () => unsubscribe();
-  }, [navigate]);
+    initializeAuth();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [navigate, location.pathname]);
 
-  const getErrorMessage = (error: string) => {
-    switch (error) {
-      case 'Firebase: Error (auth/invalid-credential).':
-        return 'Incorrect email or password. Please try again.';
-      case 'Firebase: Error (auth/email-already-in-use).':
-        return 'An account with this email already exists.';
-      case 'Firebase: Error (auth/weak-password).':
-        return 'Password should be at least 6 characters long.';
-      case 'Firebase: Error (auth/invalid-email).':
-        return 'Please enter a valid email address.';
-      case 'Firebase: Error (auth/user-not-found).':
-        return 'No account found with this email.';
-      case 'Firebase: Error (auth/too-many-requests).':
-        return 'Too many attempts. Please try again later.';
-      case 'Firebase: Error (auth/popup-closed-by-user).':
-        return 'Sign in was cancelled. Please try again.';
-      case 'Firebase: Error (auth/cancelled-popup-request).':
-        return 'Another sign in attempt is in progress.';
-      case 'Firebase: Error (auth/popup-blocked).':
-        return 'Sign in popup was blocked. Please allow popups for this site.';
-      default:
-        return 'Something went wrong. Please try again.';
-    }
-  };
-
-  const signInWithGoogle = async () => {
+  const signUpWithEmail = async (email: string, password: string, name: string) => {
     try {
-      setError(null);
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      await signInWithPopup(auth, provider);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await userCredential.user.updateProfile({ displayName: name });
+      await sendEmailVerification(userCredential.user);
+      return {
+        success: true,
+        message: 'Account created successfully! Please check your email for verification.',
+      };
     } catch (err: any) {
       const errorMessage = getErrorMessage(err.message);
-      throw new Error(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
     }
   };
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
-      setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      if (!userCredential.user.emailVerified) {
+        // Send another verification email if user is not verified
+        await sendEmailVerification(userCredential.user);
+        navigate('/verify', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (err: any) {
       const errorMessage = getErrorMessage(err.message);
       throw new Error(errorMessage);
     }
   };
 
-  const signUpWithEmail = async (email: string, password: string, name: string) => {
+  const signInWithGoogle = async () => {
     try {
-      setError(null);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, {
-        displayName: name
-      });
-      setUser({ ...userCredential.user, displayName: name });
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      if (!userCredential.user.emailVerified) {
+        await sendEmailVerification(userCredential.user);
+        navigate('/verify', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (err: any) {
       const errorMessage = getErrorMessage(err.message);
       throw new Error(errorMessage);
@@ -105,33 +175,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      navigate('/');
+      setUser(null);
+      navigate('/', { replace: true });
     } catch (err: any) {
       const errorMessage = getErrorMessage(err.message);
       throw new Error(errorMessage);
     }
   };
 
+  const deleteAccount = async (password: string) => {
+    if (!user) throw new Error('No user logged in');
+
+    try {
+      // Re-authenticate user before deletion
+      const credential = EmailAuthProvider.credential(user.email!, password);
+      await reauthenticateWithCredential(user, credential);
+      
+      // Now delete the user
+      await deleteUser(user);
+      setUser(null);
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      const errorMessage = getErrorMessage(err.message);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return {
+        success: true,
+        message: 'Password reset email sent! Please check your inbox.',
+      };
+    } catch (err: any) {
+      const errorMessage = getErrorMessage(err.message);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    signUpWithEmail,
+    signInWithEmail,
+    signInWithGoogle,
+    signOut,
+    deleteAccount,
+    resetPassword,
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        signInWithGoogle,
-        signInWithEmail,
-        signUpWithEmail,
-        signOut,
-        error
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }

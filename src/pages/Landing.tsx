@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthForm } from '../components/auth/AuthForm';
+import AuthForm from '../components/auth/AuthForm';
 import { FileSearch, Brain, Share2, Zap, CheckCircle } from 'lucide-react';
 
 export function Landing() {
@@ -254,7 +254,7 @@ export function Landing() {
             </div>
 
             {/* Right Column - Sign Up Form */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <div>
               <AuthForm />
             </div>
           </div>
