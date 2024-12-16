@@ -6,9 +6,7 @@ import clsx from 'clsx';
 export function NavLinks() {
   const { darkMode } = useTheme();
   
-  const links = [
-    { href: '/dashboard', label: 'Dashboard' }
-  ];
+  const links = [];
 
   return (
     <nav className="flex items-center space-x-4">
