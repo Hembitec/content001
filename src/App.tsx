@@ -7,8 +7,10 @@ import NLPGenerator from './pages/tools/NLPGenerator';
 import SocialMediaConverter from './pages/tools/SocialMediaConverter';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import AuthForm from './components/auth/AuthForm';
+import { Header } from './components/header/Header';
+import clsx from 'clsx';
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -34,8 +36,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
+  const { user } = useAuth();
+  const { darkMode } = useTheme();
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className={clsx(
+      "min-h-screen bg-gradient-to-br from-blue-50 to-white transition-colors duration-200",
+      darkMode && "dark from-gray-900 to-gray-800"
+    )}>
+      {user && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />

@@ -1,51 +1,86 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { User } from '../../types';
-import { LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { User } from 'firebase/auth';
 import { useAuth } from '../../context/AuthContext';
+import { LogOut, Settings, User as UserIcon } from 'lucide-react';
+import clsx from 'clsx';
+import { theme } from '../../styles/theme';
 
 interface UserMenuProps {
   user: User;
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const { signOut } = useAuth();
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className={clsx(
+          "flex items-center space-x-2 p-2 rounded-full transition-colors",
+          theme.colors.button.secondary
+        )}
       >
-        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-          <span className="text-blue-600 dark:text-blue-400 font-medium">
-            {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
-          </span>
-        </div>
+        {user.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt={user.displayName || 'User'}
+            className="w-8 h-8 rounded-full"
+          />
+        ) : (
+          <div className={clsx(
+            "w-8 h-8 rounded-full flex items-center justify-center",
+            theme.colors.background.secondary
+          )}>
+            <UserIcon className={clsx("w-4 h-4", theme.colors.text.accent)} />
+          </div>
+        )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 border border-gray-200 dark:border-gray-700">
-          <button
-            onClick={signOut}
-            className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className={clsx(
+            "absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 z-20",
+            theme.colors.background.primary,
+            theme.colors.border.light,
+            "border"
+          )}>
+            <div className={clsx("px-4 py-2 text-sm", theme.colors.text.primary)}>
+              {user.displayName || user.email}
+            </div>
+            
+            <div className="border-t border-gray-100 dark:border-gray-700" />
+            
+            <button
+              onClick={() => {/* Add settings handler */}}
+              className={clsx(
+                "w-full flex items-center px-4 py-2 text-sm transition-colors",
+                theme.colors.text.secondary,
+                "hover:" + theme.colors.text.accent.split(' ')[0]
+              )}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </button>
+            
+            <button
+              onClick={() => signOut()}
+              className={clsx(
+                "w-full flex items-center px-4 py-2 text-sm transition-colors",
+                theme.colors.text.secondary,
+                "hover:" + theme.colors.text.accent.split(' ')[0]
+              )}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign out
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

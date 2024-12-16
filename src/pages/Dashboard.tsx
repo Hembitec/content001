@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings as SettingsIcon, FileText, Brain, Share2 } from 'lucide-react';
 import { Settings } from '../components/settings/Settings';
+import { theme } from '../styles/theme';
 import clsx from 'clsx';
 
 export function Dashboard() {
@@ -32,66 +33,30 @@ export function Dashboard() {
       id: 'content-analyzer',
       title: 'Content Analyzer',
       description: 'Evaluates text for grammar, readability, SEO, and style. Users can input content via text, file, or URL and receive detailed, actionable insights.',
-      icon: '📄',
+      icon: <FileText className="w-6 h-6" />,
       link: '/analyzer',
-      color: 'bg-purple-100'
+      color: theme.colors.brand.accent
     },
     {
       id: 'nlp-generator',
       title: 'NLP Generator',
       description: 'Creates tailored content like blog posts and articles. Users input keywords, select tone and length, and receive optimized, editable content.',
-      icon: '🧠',
+      icon: <Brain className="w-6 h-6" />,
       link: '/tools/nlp-generator',
-      color: 'bg-blue-100'
+      color: theme.colors.brand.accent
     },
     {
       id: 'social-media-converter',
       title: 'Social Media Content Converter',
       description: 'Transforms text into platform-specific posts for Twitter, LinkedIn, and Facebook. Offers tone customization, hashtag suggestions, and easy export options.',
-      icon: '🔄',
+      icon: <Share2 className="w-6 h-6" />,
       link: '/tools/social-converter',
-      color: 'bg-green-100'
+      color: theme.colors.brand.accent
     }
   ];
 
   return (
-    <div className={clsx(
-      'min-h-screen transition-colors duration-200',
-      darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
-    )}>
-      {/* Header */}
-      <header className={clsx(
-        'w-full border-b transition-colors duration-200 backdrop-blur-sm',
-        darkMode ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white/50 border-gray-200/50'
-      )}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-          <h1 className={clsx(
-            'text-2xl font-bold',
-            darkMode
-              ? 'bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'
-              : 'bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'
-          )}>
-            ContentIQ
-          </h1>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowSettings(true)}
-            className={clsx(
-              'p-2 rounded-full transition-colors',
-              darkMode
-                ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
-                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100/50'
-            )}
-            title="Settings"
-          >
-            <SettingsIcon className="w-6 h-6" />
-          </motion.button>
-        </div>
-      </header>
-
+    <div className="flex-1">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Title */}
@@ -100,16 +65,10 @@ export function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h2 className={clsx(
-            'text-3xl font-bold mb-3',
-            darkMode ? 'text-gray-100' : 'text-gray-900'
-          )}>
+          <h2 className={clsx("text-3xl font-bold mb-3", theme.colors.text.primary)}>
             Dashboard
           </h2>
-          <p className={clsx(
-            'text-lg',
-            darkMode ? 'text-gray-400' : 'text-gray-600'
-          )}>
+          <p className={clsx("text-lg", theme.colors.text.secondary)}>
             Welcome back, {user?.displayName || 'User'}
           </p>
         </motion.div>
@@ -126,30 +85,22 @@ export function Dashboard() {
               <Link
                 to={tool.link}
                 className={clsx(
-                  'block p-6 rounded-2xl transition-all duration-200',
-                  'border backdrop-blur-sm',
-                  darkMode
-                    ? 'bg-gray-800/30 border-gray-700/30 hover:bg-gray-800/50 hover:border-gray-700/50'
-                    : 'bg-white/80 border-gray-200/80 hover:bg-white/90 hover:border-gray-300/90 shadow-lg'
+                  theme.components.card,
+                  "block p-6 hover:shadow-lg transition-all duration-200"
                 )}
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className={clsx(
-                    'p-3 rounded-xl',
-                    darkMode ? 'bg-opacity-20' : '',
-                    tool.color
+                    "p-3 rounded-xl bg-blue-50 dark:bg-blue-900/30",
+                    "text-blue-600 dark:text-blue-400"
                   )}>
-                    <span className="text-2xl">{tool.icon}</span>
+                    {tool.icon}
                   </div>
-                  <h3 className={clsx(
-                    'text-xl font-semibold',
-                    darkMode ? 'text-gray-200' : 'text-gray-900'
-                  )}>{tool.title}</h3>
+                  <h3 className={clsx("text-xl font-semibold", theme.colors.text.primary)}>
+                    {tool.title}
+                  </h3>
                 </div>
-                <p className={clsx(
-                  'text-base leading-relaxed',
-                  darkMode ? 'text-gray-400' : 'text-gray-600'
-                )}>
+                <p className={clsx("text-base leading-relaxed", theme.colors.text.secondary)}>
                   {tool.description}
                 </p>
               </Link>

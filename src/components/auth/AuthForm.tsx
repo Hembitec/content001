@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { sendEmailVerification } from 'firebase/auth';
 import clsx from 'clsx';
 import { Mail, ArrowLeft } from 'lucide-react';
+import { theme } from '../../styles/theme';
 
 interface AuthFormProps {
   isCompact?: boolean;
@@ -32,25 +33,31 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
         const result = await resetPassword(email);
         if (result.success) {
           setMessage(result.message);
+          setStatus('success');
         } else {
           setError(result.message);
+          setStatus('error');
         }
       } else if (isSignUp) {
         if (!name.trim()) {
           setError('Please enter your name');
+          setStatus('error');
           setIsLoading(false);
           return;
         }
         if (password !== confirmPassword) {
           setError('Passwords do not match');
+          setStatus('error');
           setIsLoading(false);
           return;
         }
         const result = await signUpWithEmail(email, password, name.trim());
         if (result.success) {
           setMessage(result.message);
+          setStatus('success');
         } else {
           setError(result.message);
+          setStatus('error');
         }
       } else {
         await signInWithEmail(email, password);
@@ -58,6 +65,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
       }
     } catch (err: any) {
       setError(err.message);
+      setStatus('error');
     } finally {
       setIsLoading(false);
     }
@@ -65,37 +73,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
 
   if (isForgotPassword) {
     return (
-      <div className={clsx(
-        "w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8",
-        isCompact && "p-6"
-      )}>
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+      <div className={clsx(theme.components.card, "w-full max-w-md mx-auto p-8", isCompact && "p-6")}>
+        <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Mail className={clsx("w-8 h-8", theme.colors.text.accent)} />
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+        <h2 className={clsx("text-2xl font-bold text-center mb-2", theme.colors.text.primary)}>
           Reset Password
         </h2>
         
-        <p className="text-gray-600 dark:text-gray-300 text-center mb-8">
+        <p className={clsx("text-center mb-8", theme.colors.text.secondary)}>
           Enter your email address and we'll send you a link to reset your password.
         </p>
 
         {(message || error) && (
-          <div 
-            className={clsx(
-              "mb-6 p-4 rounded-lg text-sm",
-              status === 'success' ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300" :
-              "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-            )}
-          >
+          <div className={clsx(
+            "mb-6 p-4 rounded-lg text-sm",
+            status === 'success' ? theme.colors.status.success.bg + ' ' + theme.colors.status.success.text :
+            theme.colors.status.error.bg + ' ' + theme.colors.status.error.text
+          )}>
             {message || error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="email" className={clsx("block text-sm font-medium mb-1", theme.colors.text.secondary)}>
               Email address
             </label>
             <input
@@ -104,7 +107,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className={theme.components.input}
               required
             />
           </div>
@@ -113,10 +116,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
             type="submit"
             disabled={!email || isLoading}
             className={clsx(
-              "w-full px-4 py-2 rounded-lg font-medium transition-colors",
+              theme.components.button.base,
               (!email || isLoading)
                 ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                : theme.colors.button.primary
             )}
           >
             {isLoading ? "Sending..." : "Send Reset Link"}
@@ -130,7 +133,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
             setMessage('');
             setStatus('idle');
           }}
-          className="mt-6 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+          className={clsx("mt-6 inline-flex items-center gap-2 text-sm", theme.colors.text.secondary, "hover:" + theme.colors.text.accent)}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to login
@@ -140,16 +143,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
   }
 
   return (
-    <div className={clsx(
-      "w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8",
-      isCompact && "p-6"
-    )}>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
+    <div className={clsx(theme.components.card, "w-full max-w-md mx-auto p-8", isCompact && "p-6")}>
+      <h2 className={clsx("text-2xl font-bold text-center mb-8", theme.colors.text.primary)}>
         {isSignUp ? 'Create an account' : 'Welcome back'}
       </h2>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm">
+        <div className={clsx("mb-6 p-4 rounded-lg text-sm", theme.colors.status.error.bg, theme.colors.status.error.text)}>
           {error}
         </div>
       )}
@@ -157,7 +157,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
       <form onSubmit={handleSubmit} className="space-y-4">
         {isSignUp && (
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="name" className={clsx("block text-sm font-medium mb-1", theme.colors.text.secondary)}>
               Full Name
             </label>
             <input
@@ -166,14 +166,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className={theme.components.input}
               required
             />
           </div>
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="email" className={clsx("block text-sm font-medium mb-1", theme.colors.text.secondary)}>
             Email address
           </label>
           <input
@@ -182,13 +182,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className={theme.components.input}
             required
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="password" className={clsx("block text-sm font-medium mb-1", theme.colors.text.secondary)}>
             Password
           </label>
           <input
@@ -197,14 +197,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className={theme.components.input}
             required
           />
         </div>
 
         {isSignUp && (
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="confirmPassword" className={clsx("block text-sm font-medium mb-1", theme.colors.text.secondary)}>
               Confirm Password
             </label>
             <input
@@ -213,7 +213,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className={theme.components.input}
               required
             />
           </div>
@@ -225,9 +225,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
               <input
                 type="checkbox"
                 id="remember"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className={clsx("h-4 w-4 rounded border-2", theme.colors.border.light, theme.colors.text.accent)}
               />
-              <label htmlFor="remember" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+              <label htmlFor="remember" className={clsx("ml-2 block text-sm", theme.colors.text.secondary)}>
                 Remember me
               </label>
             </div>
@@ -237,7 +237,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
                 setIsForgotPassword(true);
                 setError('');
               }}
-              className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              className={clsx("text-sm font-medium", theme.colors.text.accent)}
             >
               Forgot password?
             </button>
@@ -248,10 +248,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
           type="submit"
           disabled={isLoading}
           className={clsx(
-            "w-full px-4 py-2 rounded-lg font-medium transition-colors",
+            theme.components.button.base,
             isLoading
               ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+              : theme.colors.button.primary
           )}
         >
           {isLoading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
@@ -260,10 +260,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
         <div className="mt-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+              <div className={clsx("w-full border-t", theme.colors.border.light)} />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800">
+              <span className={clsx("px-2", theme.colors.text.secondary, theme.colors.background.primary)}>
                 Or continue with
               </span>
             </div>
@@ -272,7 +272,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
           <button
             type="button"
             onClick={() => signInWithGoogle().catch(err => setError(err.message))}
-            className="mt-4 w-full flex items-center justify-center gap-3 py-3 px-4 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            className={clsx(
+              theme.components.button.base,
+              theme.colors.button.secondary,
+              "mt-4 w-full flex items-center justify-center gap-3"
+            )}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
               <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -285,7 +289,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
         </div>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+      <p className={clsx("mt-6 text-center text-sm", theme.colors.text.secondary)}>
         {isSignUp ? "Already have an account? " : "Don't have an account? "}
         <button
           onClick={() => {
@@ -296,7 +300,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isCompact = false, onSuccess }) => 
             setConfirmPassword('');
             setName('');
           }}
-          className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+          className={clsx("font-medium", theme.colors.text.accent)}
         >
           {isSignUp ? "Sign in" : "Sign up"}
         </button>
