@@ -71,7 +71,7 @@ Key Requirements:
 - Topic: ${title}
 - Type: ${contentType}
 - Tone: ${tone}
-- Length: ${length} (${length === 'short' ? '~500' : length === 'medium' ? '~1000' : '~2000'} words)
+- Length: ${length} (${length === 'short' ? '~800' : length === 'medium' ? '~1500' : '~3000'} words)
 ${keywords.length > 0 ? `- Keywords: ${keywords.join(', ')}` : ''}
 ${keynotes ? `- Additional Requirements: ${keynotes}` : ''}
 
@@ -114,44 +114,55 @@ Important:
     const generatedText = await generateContent(prompt);
     console.log('Generated text:', generatedText); // For debugging
 
-    // Parse meta information
-    const metaMatch = generatedText.match(/===META INFORMATION START===([\s\S]*?)===META INFORMATION END===/);
-    const contentMatch = generatedText.match(/===CONTENT START===([\s\S]*?)===CONTENT END===/);
+    // More flexible section matching
+    const metaMatch = generatedText.match(/===META INFORMATION START===([\s\S]*?)===META INFORMATION END===|SEO Title:([\s\S]*?)(?====CONTENT START===)/i);
+    const contentMatch = generatedText.match(/===CONTENT START===([\s\S]*?)===CONTENT END===|<h1>([\s\S]*?)$/i);
 
     if (!metaMatch || !contentMatch) {
       console.error('Failed to parse response. Generated text:', generatedText);
       throw new Error('Failed to parse generated content - invalid format');
     }
 
-    const metaText = metaMatch[1].trim();
-    const contentText = contentMatch[1].trim();
+    // Get the matched content, checking both capture groups
+    const metaText = (metaMatch[1] || metaMatch[2] || '').trim();
+    const contentText = (contentMatch[1] || contentMatch[2] || '').trim();
 
-    // Parse meta information with more flexible regex
-    const titleMatch = metaText.match(/SEO Title:\s*(.+?)(?=\n|$)/);
-    const descMatch = metaText.match(/Meta Description:\s*(.+?)(?=\n|$)/);
-    const keywordsMatch = metaText.match(/Target Keywords:\s*(.+?)(?=\n|$)/);
-    const audienceMatch = metaText.match(/Target Audience:\s*(.+?)(?=\n|$)/);
+    // More flexible meta information parsing
+    const titleMatch = metaText.match(/SEO Title:?\s*(.+?)(?=\n|$)/i);
+    const descMatch = metaText.match(/Meta Description:?\s*(.+?)(?=\n|$)/i);
+    const keywordsMatch = metaText.match(/Target Keywords:?\s*(.+?)(?=\n|$)/i);
+    const audienceMatch = metaText.match(/Target Audience:?\s*(.+?)(?=\n|$)/i);
 
-    if (!titleMatch || !descMatch || !keywordsMatch || !audienceMatch) {
-      console.error('Failed to parse meta information. Meta text:', metaText);
-      throw new Error('Failed to parse meta information - missing required fields');
-    }
+    // If meta information is missing, try to extract from content
+    const title = titleMatch ? titleMatch[1].trim() : extractTitle(contentText);
+    const metaDescription = descMatch ? descMatch[1].trim() : generateMetaDescription(contentText);
+    const keywords = keywordsMatch 
+      ? keywordsMatch[1].split(/,|;/).map(k => k.trim()).filter(k => k)
+      : extractKeywords(contentText);
+    const targetAudience = audienceMatch 
+      ? audienceMatch[1].trim() 
+      : "General audience interested in this topic";
 
     // Clean and format content
-    const cleanContent = contentText
+    let cleanContent = contentText
       .replace(/\[Write the full content here using proper HTML tags for structure\]/, '')
       .replace(/- Use <[^>]+> for [^\n]+\n?/g, '')
       .trim();
+
+    // Ensure content has basic HTML structure
+    if (!cleanContent.includes('<')) {
+      cleanContent = `<h1>${title}</h1>\n<p>${cleanContent}</p>`;
+    }
 
     if (!cleanContent) {
       throw new Error('Generated content is empty');
     }
 
     return {
-      title: titleMatch[1].trim(),
-      metaDescription: descMatch[1].trim(),
-      keywords: keywordsMatch[1].split(',').map(k => k.trim()),
-      targetAudience: audienceMatch[1].trim(),
+      title,
+      metaDescription,
+      keywords,
+      targetAudience,
       content: cleanContent
     };
   } catch (error) {
@@ -161,4 +172,32 @@ Important:
     }
     throw new Error('Failed to generate content. Please try again.');
   }
+}
+
+// Helper functions for content parsing
+function extractTitle(content: string): string {
+  const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  if (h1Match) return h1Match[1].trim();
+  
+  const firstLine = content.split('\n')[0];
+  return firstLine.replace(/<[^>]+>/g, '').trim();
+}
+
+function generateMetaDescription(content: string): string {
+  const cleanText = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return cleanText.substring(0, 157) + '...';
+}
+
+function extractKeywords(content: string): string[] {
+  const cleanText = content.replace(/<[^>]+>/g, ' ').toLowerCase();
+  const words = cleanText.split(/\W+/);
+  const wordFreq = words.reduce((acc: {[key: string]: number}, word) => {
+    if (word.length > 3) acc[word] = (acc[word] || 0) + 1;
+    return acc;
+  }, {});
+  
+  return Object.entries(wordFreq)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5)
+    .map(([word]) => word);
 }
