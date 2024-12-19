@@ -45,7 +45,7 @@ function AppRoutes() {
       "min-h-screen bg-gradient-to-br from-blue-50 to-white transition-colors duration-200",
       darkMode && "dark from-gray-900 to-gray-800"
     )}>
-      {user && location.pathname !== '/tools/nlp-generator' && <Header />}
+      {user && location.pathname !== '/tools/nlp-generator' && location.pathname !== '/analyzer' && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />
