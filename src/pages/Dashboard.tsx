@@ -9,106 +9,149 @@ import { theme } from '../styles/theme';
 import clsx from 'clsx';
 
 export function Dashboard() {
-  const [showSettings, setShowSettings] = useState(false);
   const { darkMode } = useTheme();
   const { user } = useAuth();
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
-  const tools = [
-    {
-      id: 'content-analyzer',
-      title: 'Content Analyzer',
-      description: 'Evaluates text for grammar, readability, SEO, and style. Users can input content via text, file, or URL and receive detailed, actionable insights.',
-      icon: <FileText className="w-6 h-6" />,
-      link: '/analyzer',
-      color: theme.colors.brand.accent
-    },
-    {
-      id: 'nlp-generator',
-      title: 'NLP Generator',
-      description: 'Creates tailored content like blog posts and articles. Users input keywords, select tone and length, and receive optimized, editable content.',
-      icon: <Brain className="w-6 h-6" />,
-      link: '/tools/nlp-generator',
-      color: theme.colors.brand.accent
-    },
-    {
-      id: 'social-media-converter',
-      title: 'Social Media Content Converter',
-      description: 'Transforms text into platform-specific posts for Twitter, LinkedIn, and Facebook. Offers tone customization, hashtag suggestions, and easy export options.',
-      icon: <Share2 className="w-6 h-6" />,
-      link: '/tools/social-converter',
-      color: theme.colors.brand.accent
-    }
-  ];
-
   return (
-    <div className="flex-1">
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Title */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <h2 className={clsx("text-3xl font-bold mb-3", theme.colors.text.primary)}>
-            Dashboard
-          </h2>
-          <p className={clsx("text-lg", theme.colors.text.secondary)}>
-            Welcome back, {user?.displayName || 'User'}
+    <div className={clsx(
+      'min-h-screen w-full transition-colors duration-200',
+      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+    )}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Dashboard Header */}
+        <div className="mb-12">
+          <h1 className={clsx(
+            "text-4xl font-bold tracking-tight mb-4",
+            darkMode
+              ? "text-white"
+              : "bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent"
+          )}>
+            Welcome back
+            <span className={clsx(
+              "ml-2 text-2xl font-medium",
+              darkMode
+                ? "text-blue-400"
+                : "text-blue-500"
+            )}>
+              {user?.displayName || 'User'}
+            </span>
+          </h1>
+          <p className={clsx(
+            "text-lg",
+            darkMode ? "text-gray-400" : "text-gray-600"
+          )}>
+            Transform your content strategy with our AI-powered tools
           </p>
-        </motion.div>
+        </div>
 
         {/* Tools Grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {tools.map((tool) => (
-            <motion.div key={tool.id} variants={item}>
-              <Link
-                to={tool.link}
-                className={clsx(
-                  theme.components.card,
-                  "block p-6 hover:shadow-lg transition-all duration-200"
-                )}
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className={clsx(
-                    "p-3 rounded-xl bg-blue-50 dark:bg-blue-900/30",
-                    "text-blue-600 dark:text-blue-400"
-                  )}>
-                    {tool.icon}
-                  </div>
-                  <h3 className={clsx("text-xl font-semibold", theme.colors.text.primary)}>
-                    {tool.title}
-                  </h3>
-                </div>
-                <p className={clsx("text-base leading-relaxed", theme.colors.text.secondary)}>
-                  {tool.description}
-                </p>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Content Analyzer */}
+          <Link
+            to="/analyzer"
+            className={clsx(
+              "group p-6 rounded-2xl transition-all duration-300",
+              "border",
+              darkMode 
+                ? "bg-gray-800/50 border-gray-700 hover:border-blue-500/50" 
+                : "bg-white border-gray-200 hover:border-blue-500/30",
+              "hover:shadow-lg hover:shadow-blue-500/10"
+            )}
+          >
+            <div className={clsx(
+              "w-12 h-12 rounded-xl flex items-center justify-center mb-6",
+              "transition-colors duration-300",
+              darkMode
+                ? "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"
+                : "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+            )}>
+              <FileText className="w-6 h-6" />
+            </div>
+            <h3 className={clsx(
+              "text-xl font-semibold mb-3",
+              darkMode ? "text-white" : "text-gray-900"
+            )}>
+              Content Analyzer
+            </h3>
+            <p className={clsx(
+              "text-sm leading-relaxed",
+              darkMode ? "text-gray-400" : "text-gray-600"
+            )}>
+              Evaluates text for grammar, readability, SEO, and style. Get detailed, actionable insights instantly.
+            </p>
+          </Link>
+
+          {/* NLP Generator */}
+          <Link
+            to="/tools/nlp-generator"
+            className={clsx(
+              "group p-6 rounded-2xl transition-all duration-300",
+              "border",
+              darkMode 
+                ? "bg-gray-800/50 border-gray-700 hover:border-blue-500/50" 
+                : "bg-white border-gray-200 hover:border-blue-500/30",
+              "hover:shadow-lg hover:shadow-blue-500/10"
+            )}
+          >
+            <div className={clsx(
+              "w-12 h-12 rounded-xl flex items-center justify-center mb-6",
+              "transition-colors duration-300",
+              darkMode
+                ? "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"
+                : "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+            )}>
+              <Brain className="w-6 h-6" />
+            </div>
+            <h3 className={clsx(
+              "text-xl font-semibold mb-3",
+              darkMode ? "text-white" : "text-gray-900"
+            )}>
+              NLP Generator
+            </h3>
+            <p className={clsx(
+              "text-sm leading-relaxed",
+              darkMode ? "text-gray-400" : "text-gray-600"
+            )}>
+              Create tailored content with customizable tone and length. Perfect for blog posts and articles.
+            </p>
+          </Link>
+
+          {/* Social Media Converter */}
+          <Link
+            to="/tools/social-converter"
+            className={clsx(
+              "group p-6 rounded-2xl transition-all duration-300",
+              "border",
+              darkMode 
+                ? "bg-gray-800/50 border-gray-700 hover:border-blue-500/50" 
+                : "bg-white border-gray-200 hover:border-blue-500/30",
+              "hover:shadow-lg hover:shadow-blue-500/10"
+            )}
+          >
+            <div className={clsx(
+              "w-12 h-12 rounded-xl flex items-center justify-center mb-6",
+              "transition-colors duration-300",
+              darkMode
+                ? "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20"
+                : "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+            )}>
+              <Share2 className="w-6 h-6" />
+            </div>
+            <h3 className={clsx(
+              "text-xl font-semibold mb-3",
+              darkMode ? "text-white" : "text-gray-900"
+            )}>
+              Social Media Converter
+            </h3>
+            <p className={clsx(
+              "text-sm leading-relaxed",
+              darkMode ? "text-gray-400" : "text-gray-600"
+            )}>
+              Transform content for social platforms with tone customization and hashtag suggestions.
+            </p>
+          </Link>
+        </div>
       </div>
-      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }
