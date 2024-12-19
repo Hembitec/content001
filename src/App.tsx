@@ -4,7 +4,7 @@ import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { ContentAnalyzer } from './pages/tools/ContentAnalyzer';
 import NLPGenerator from './pages/tools/NLPGenerator';
-import SocialMediaConverter from './pages/tools/SocialMediaConverter';
+import { SocialMediaConverter } from './pages/tools/SocialMediaConverter';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -45,7 +45,9 @@ function AppRoutes() {
       "min-h-screen bg-gradient-to-br from-blue-50 to-white transition-colors duration-200",
       darkMode && "dark from-gray-900 to-gray-800"
     )}>
-      {user && location.pathname !== '/tools/nlp-generator' && location.pathname !== '/analyzer' && <Header />}
+      {user && location.pathname !== '/tools/nlp-generator' && 
+       location.pathname !== '/analyzer' && 
+       location.pathname !== '/tools/social-converter' && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />

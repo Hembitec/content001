@@ -13,7 +13,7 @@ interface ConversionResult {
   variation: number;
 }
 
-export default function SocialMediaConverter() {
+const SocialMediaConverter: React.FC = () => {
   const { darkMode } = useTheme();
   const [content, setContent] = useState('');
   const [isConverting, setIsConverting] = useState(false);
@@ -35,7 +35,6 @@ export default function SocialMediaConverter() {
     { id: 'comparison', label: 'Comparison Post' },
     { id: 'stepbystep', label: 'Step-by-Step Guide' }
   ];
-
 
   const handleConvert = async () => {
     if (!content.trim()) return;
@@ -73,40 +72,42 @@ export default function SocialMediaConverter() {
       'min-h-screen transition-colors duration-200',
       darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
     )}>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <Link
-          to="/dashboard"
-          className={clsx(
-            'inline-flex items-center gap-2 mb-8 text-sm',
-            darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'
-          )}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
+      {/* Back Button Header */}
+      <div className={clsx(
+        'w-full border-b',
+        darkMode ? 'border-gray-800' : 'border-gray-200'
+      )}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link
+            to="/dashboard"
+            className={clsx(
+              'inline-flex items-center gap-2 text-sm transition-colors duration-200',
+              darkMode 
+                ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 px-3 py-1 rounded-md' 
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-1 rounded-md'
+            )}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+        </div>
+      </div>
 
-        {/* Tool Title */}
-        <div className="mb-8">
-          <h2 className={clsx(
-            'text-3xl font-bold flex items-center gap-3 mb-3',
-            darkMode 
-              ? 'bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent'
-              : 'bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent'
-          )}>
-            Social Media Converter
-            <Share2 className="text-2xl" />
-          </h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Title and Description */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Share2 className="w-8 h-8 text-blue-500" />
+            <h1 className="text-3xl font-bold">Social Media Converter</h1>
+          </div>
           <p className={clsx(
-            'text-lg',
-            darkMode ? 'text-gray-400' : 'text-gray-600'
+            "mt-2 text-lg",
+            darkMode ? "text-gray-400" : "text-gray-600"
           )}>
-            Transform your content into multiple variations for your chosen platform
+            Convert your content for different social media platforms with AI assistance
           </p>
         </div>
 
-        {/* Input Form */}
         <div className={clsx(
           'p-8 rounded-2xl backdrop-blur-sm',
           darkMode
@@ -116,25 +117,23 @@ export default function SocialMediaConverter() {
           {/* Platform Selection */}
           <div className="mb-6">
             <label className={clsx(
-              'block text-sm font-medium mb-2',
+              'block text-lg font-medium mb-3',
               darkMode ? 'text-gray-300' : 'text-gray-700'
             )}>
               Select Platform
             </label>
-            <div className="flex flex-wrap gap-2">
-              {platforms.map((platform) => (
+            <div className="flex gap-3">
+              {platforms.map(platform => (
                 <button
                   key={platform.id}
                   onClick={() => setSelectedPlatform(platform.id)}
                   className={clsx(
-                    'px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2',
+                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
                     selectedPlatform === platform.id
-                      ? darkMode
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                        : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      ? 'bg-blue-500 text-white'
                       : darkMode
-                        ? 'bg-gray-700/50 text-gray-400 border border-gray-600/30 hover:bg-gray-700'
-                        : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
                   {platform.icon}
@@ -145,17 +144,16 @@ export default function SocialMediaConverter() {
           </div>
 
           {/* Content Input */}
-          <div className="relative mb-6">
+          <div className="mb-6">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter your content to convert..."
-              rows={6}
               className={clsx(
-                'w-full px-4 py-3 rounded-xl border transition-all resize-y min-h-[150px]',
+                'w-full h-40 p-4 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors duration-200',
                 darkMode
-                  ? 'bg-gray-900/50 border-gray-700 text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
-                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
               )}
             />
           </div>
@@ -163,25 +161,23 @@ export default function SocialMediaConverter() {
           {/* Content Type Selection */}
           <div className="mb-6">
             <label className={clsx(
-              'block text-sm font-medium mb-2',
+              'block text-lg font-medium mb-3',
               darkMode ? 'text-gray-300' : 'text-gray-700'
             )}>
               Content Type
             </label>
-            <div className="flex flex-wrap gap-2">
-              {contentTypes.map((type) => (
+            <div className="flex flex-wrap gap-3">
+              {contentTypes.map(type => (
                 <button
                   key={type.id}
                   onClick={() => setSelectedType(type.id)}
                   className={clsx(
-                    'px-4 py-2 rounded-lg font-medium text-sm transition-all',
+                    'px-4 py-2 rounded-lg transition-all duration-200',
                     selectedType === type.id
-                      ? darkMode
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                        : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      ? 'bg-blue-500 text-white'
                       : darkMode
-                        ? 'bg-gray-700/50 text-gray-400 border border-gray-600/30 hover:bg-gray-700'
-                        : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
                   {type.label}
@@ -190,35 +186,29 @@ export default function SocialMediaConverter() {
             </div>
           </div>
 
-          {/* Generate Button */}
-          <div className="flex justify-end">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+          {/* Convert Button */}
+          <div className="flex justify-center">
+            <button
               onClick={handleConvert}
               disabled={isConverting || !content.trim()}
               className={clsx(
-                'px-6 py-3 rounded-xl font-medium flex items-center gap-2',
-                'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600',
-                'text-white disabled:opacity-50 disabled:cursor-not-allowed',
-                'transition-all duration-200'
+                'px-8 py-3 rounded-lg font-medium transition-all duration-200',
+                isConverting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
               )}
             >
               {isConverting ? (
-                <>
+                <div className="flex items-center justify-center gap-2">
                   <RefreshCw className="w-5 h-5 animate-spin" />
                   Converting...
-                </>
+                </div>
               ) : (
-                <>
-                  <Share2 className="w-5 h-5" />
-                  Generate 4 Variations
-                </>
+                'Convert'
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
-
 
         {/* Add space between input and results */}
         <div className="mt-8"></div>
@@ -306,4 +296,6 @@ export default function SocialMediaConverter() {
       </div>
     </div>
   );
-}
+};
+
+export { SocialMediaConverter };
