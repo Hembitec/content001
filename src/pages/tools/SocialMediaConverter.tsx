@@ -95,13 +95,13 @@ const SocialMediaConverter: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Title and Description */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 px-4">
           <div className="flex items-center justify-center gap-3 mb-2">
             <Share2 className="w-8 h-8 text-blue-500" />
-            <h1 className="text-3xl font-bold">Social Media Converter</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Social Media Converter</h1>
           </div>
           <p className={clsx(
-            "mt-2 text-lg",
+            "mt-2 text-base sm:text-lg",
             darkMode ? "text-gray-400" : "text-gray-600"
           )}>
             Convert your content for different social media platforms with AI assistance
@@ -109,7 +109,7 @@ const SocialMediaConverter: React.FC = () => {
         </div>
 
         <div className={clsx(
-          'p-8 rounded-2xl backdrop-blur-sm',
+          'max-w-4xl mx-auto p-4 sm:p-8 rounded-2xl backdrop-blur-sm',
           darkMode
             ? 'bg-gray-800/50 border border-gray-700/50'
             : 'bg-white/80 border border-gray-200 shadow-lg'
@@ -117,27 +117,27 @@ const SocialMediaConverter: React.FC = () => {
           {/* Platform Selection */}
           <div className="mb-6">
             <label className={clsx(
-              'block text-lg font-medium mb-3',
+              'block text-base font-medium mb-2',
               darkMode ? 'text-gray-300' : 'text-gray-700'
             )}>
               Select Platform
             </label>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2">
               {platforms.map(platform => (
                 <button
                   key={platform.id}
                   onClick={() => setSelectedPlatform(platform.id)}
                   className={clsx(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
+                    'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
                     selectedPlatform === platform.id
                       ? 'bg-blue-500 text-white'
                       : darkMode
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
                   {platform.icon}
-                  {platform.label}
+                  <span className="text-sm sm:text-base">{platform.label}</span>
                 </button>
               ))}
             </div>
@@ -150,33 +150,34 @@ const SocialMediaConverter: React.FC = () => {
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter your content to convert..."
               className={clsx(
-                'w-full h-40 p-4 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors duration-200',
+                'w-full p-3 sm:p-4 rounded-lg border bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-200',
                 darkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                  ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500'
+                  : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'
               )}
+              rows={8}
             />
           </div>
 
-          {/* Content Type Selection */}
-          <div className="mb-6">
+          {/* Content Type */}
+          <div className="mb-8">
             <label className={clsx(
-              'block text-lg font-medium mb-3',
+              'block text-base font-medium mb-2',
               darkMode ? 'text-gray-300' : 'text-gray-700'
             )}>
               Content Type
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {contentTypes.map(type => (
                 <button
                   key={type.id}
                   onClick={() => setSelectedType(type.id)}
                   className={clsx(
-                    'px-4 py-2 rounded-lg transition-all duration-200',
+                    'px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 text-sm sm:text-base',
                     selectedType === type.id
                       ? 'bg-blue-500 text-white'
                       : darkMode
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
@@ -192,7 +193,7 @@ const SocialMediaConverter: React.FC = () => {
               onClick={handleConvert}
               disabled={isConverting || !content.trim()}
               className={clsx(
-                'px-8 py-3 rounded-lg font-medium transition-all duration-200',
+                'w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium transition-all duration-200',
                 isConverting
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
