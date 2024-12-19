@@ -88,17 +88,17 @@ export default function NLPGenerator() {
     )}>
       {/* Header */}
       <header className={clsx(
-        'sticky top-0 z-50 border-b px-4 py-3',
-        darkMode ? 'bg-gray-900/95 border-gray-800' : 'bg-white/95 border-gray-200'
+        'sticky top-0 z-50 border-b backdrop-blur-sm',
+        darkMode ? 'bg-gray-900/90 border-gray-800 shadow-lg shadow-gray-900/20' : 'bg-white/90 border-gray-200 shadow-lg shadow-black/5'
       )}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
           <Link
             to="/dashboard"
             className={clsx(
               'flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 transition-colors',
               darkMode 
-                ? 'text-gray-300 hover:text-white hover:bg-gray-800' 
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
             )}
           >
             <ArrowLeft className="w-4 h-4" />

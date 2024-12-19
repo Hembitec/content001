@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { ContentAnalyzer } from './pages/tools/ContentAnalyzer';
@@ -38,13 +38,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   const { user } = useAuth();
   const { darkMode } = useTheme();
+  const location = useLocation();
   
   return (
     <div className={clsx(
       "min-h-screen bg-gradient-to-br from-blue-50 to-white transition-colors duration-200",
       darkMode && "dark from-gray-900 to-gray-800"
     )}>
-      {user && <Header />}
+      {user && location.pathname !== '/tools/nlp-generator' && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />
