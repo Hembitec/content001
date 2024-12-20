@@ -6,6 +6,8 @@ import { ContentAnalyzer } from './pages/tools/ContentAnalyzer';
 import NLPGenerator from './pages/tools/NLPGenerator';
 import { SocialMediaConverter } from './pages/tools/SocialMediaConverter';
 import ContentSummarizer from './pages/tools/ContentSummarizer';
+import ContentRephraser from './pages/tools/ContentRephraser';
+import KeywordExtractor from './pages/tools/KeywordExtractor';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -49,7 +51,9 @@ function AppRoutes() {
       {user && location.pathname !== '/tools/nlp-generator' && 
        location.pathname !== '/analyzer' && 
        location.pathname !== '/tools/social-converter' &&
-       location.pathname !== '/tools/summarizer' && <Header />}
+       location.pathname !== '/tools/summarizer' &&
+       location.pathname !== '/tools/rephraser' &&
+       location.pathname !== '/tools/keyword-extractor' && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />
@@ -65,6 +69,8 @@ function AppRoutes() {
         <Route path="/tools/nlp-generator" element={<NLPGenerator />} />
         <Route path="/tools/social-converter" element={<SocialMediaConverter />} />
         <Route path="/tools/summarizer" element={<ContentSummarizer />} />
+        <Route path="/tools/rephraser" element={<ContentRephraser />} />
+        <Route path="/tools/keyword-extractor" element={<KeywordExtractor />} />
       </Routes>
     </div>
   );

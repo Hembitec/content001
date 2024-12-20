@@ -16,7 +16,8 @@ import {
   Languages,
   Hash,
   Repeat,
-  Search
+  Search,
+  Key
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -74,7 +75,7 @@ export function Dashboard() {
         {
           title: 'Keyword Extractor',
           description: 'Extract key terms and topics from your content',
-          icon: Search,
+          icon: Key,
           to: '/tools/keyword-extractor',
           isNew: true
         },
