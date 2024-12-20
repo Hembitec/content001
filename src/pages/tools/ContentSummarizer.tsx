@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Scissors, Copy, Check, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -57,23 +58,37 @@ const ContentSummarizer: React.FC = () => {
   return (
     <div className={clsx(
       'min-h-screen',
-      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+      darkMode ? 'bg-[#0B0F17]' : 'bg-gray-50'
     )}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className={clsx(
-                'p-2 rounded-lg transition-colors',
-                darkMode
-                  ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-300'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              )}
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
+      {/* Sticky Header */}
+      <div className={clsx(
+        'sticky top-0 z-10 border-b shadow-sm',
+        darkMode ? 'bg-[#0B0F17] border-gray-800' : 'bg-gray-50 border-gray-200'
+      )}>
+        <div className="max-w-5xl mx-auto p-3">
+          <Link
+            to="/dashboard"
+            className={clsx(
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg',
+              darkMode 
+                ? 'text-gray-400 hover:text-gray-300 hover:bg-[#1A1F2E]'
+                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
+            )}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-3 pb-8">
+        <div className="flex flex-col items-center mb-6 text-center pt-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Scissors className={clsx(
+              'w-6 h-6',
+              darkMode ? 'text-blue-400' : 'text-blue-500'
+            )} />
             <h1 className={clsx(
               'text-2xl font-bold',
               darkMode ? 'text-white' : 'text-gray-900'
@@ -81,16 +96,22 @@ const ContentSummarizer: React.FC = () => {
               Content Summarizer
             </h1>
           </div>
+          <p className={clsx(
+            'text-sm',
+            darkMode ? 'text-gray-400' : 'text-gray-600'
+          )}>
+            Create concise summaries of long-form content
+          </p>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.5fr] gap-8 max-w-6xl mx-auto">
           {/* Input Section */}
           <div className={clsx(
             'rounded-2xl p-6',
-            darkMode ? 'bg-gray-800' : 'bg-white',
+            darkMode ? 'bg-[#1A1F2E]' : 'bg-white',
             'border',
-            darkMode ? 'border-gray-700' : 'border-gray-200'
+            darkMode ? 'border-gray-800' : 'border-gray-200'
           )}>
             <h2 className={clsx(
               'text-xl font-semibold mb-4',
@@ -106,8 +127,8 @@ const ContentSummarizer: React.FC = () => {
                 'w-full h-64 p-4 rounded-lg',
                 'border focus:ring-2 focus:ring-blue-500 outline-none',
                 darkMode
-                  ? 'bg-gray-900 border-gray-700 text-gray-100'
-                  : 'bg-white border-gray-200 text-gray-900'
+                  ? 'bg-[#0B0F17] border-gray-800 text-gray-100'
+                  : 'bg-gray-50 border-gray-200 text-gray-900'
               )}
             />
 
@@ -238,9 +259,9 @@ const ContentSummarizer: React.FC = () => {
           {/* Output Section */}
           <div className={clsx(
             'rounded-2xl p-6',
-            darkMode ? 'bg-gray-800' : 'bg-white',
+            darkMode ? 'bg-[#1A1F2E]' : 'bg-white',
             'border',
-            darkMode ? 'border-gray-700' : 'border-gray-200'
+            darkMode ? 'border-gray-800' : 'border-gray-200'
           )}>
             <h2 className={clsx(
               'text-xl font-semibold mb-4',
@@ -250,6 +271,15 @@ const ContentSummarizer: React.FC = () => {
             </h2>
 
             {error && <ErrorMessage message={error} className="mb-4" />}
+
+            {!summary && !error && !loading && (
+              <div className={clsx(
+                'text-center py-12',
+                darkMode ? 'text-gray-400' : 'text-gray-600'
+              )}>
+                Enter your content and click "Summarize" to get started
+              </div>
+            )}
 
             {summary && (
               <div className="space-y-6">
@@ -361,15 +391,6 @@ const ContentSummarizer: React.FC = () => {
                     </ul>
                   </div>
                 )}
-              </div>
-            )}
-
-            {!summary && !error && !loading && (
-              <div className={clsx(
-                'text-center py-12',
-                darkMode ? 'text-gray-400' : 'text-gray-600'
-              )}>
-                Enter your content and click "Summarize" to get started
               </div>
             )}
           </div>

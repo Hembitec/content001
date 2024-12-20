@@ -45,13 +45,24 @@ export default function KeywordExtractor() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F17]">
+    <div className={clsx(
+      'min-h-screen',
+      darkMode ? 'bg-[#0B0F17]' : 'bg-gray-50'
+    )}>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-[#0B0F17] border-b border-gray-800">
+      <div className={clsx(
+        'sticky top-0 z-10 border-b shadow-sm',
+        darkMode ? 'bg-[#0B0F17] border-gray-800' : 'bg-gray-50 border-gray-200'
+      )}>
         <div className="max-w-5xl mx-auto p-3">
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-[#1A1F2E]"
+            className={clsx(
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg',
+              darkMode 
+                ? 'text-gray-400 hover:text-gray-300 hover:bg-[#1A1F2E]'
+                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
+            )}
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
@@ -63,24 +74,43 @@ export default function KeywordExtractor() {
       <div className="max-w-5xl mx-auto px-3 pb-8">
         <div className="flex flex-col items-center mb-6 text-center pt-6">
           <div className="flex items-center gap-3 mb-2">
-            <Key className="w-6 h-6 text-blue-400" />
-            <h1 className="text-2xl font-bold text-white">
+            <Key className={clsx(
+              'w-6 h-6',
+              darkMode ? 'text-blue-400' : 'text-blue-500'
+            )} />
+            <h1 className={clsx(
+              'text-2xl font-bold',
+              darkMode ? 'text-white' : 'text-gray-900'
+            )}>
               Keyword Extractor
             </h1>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className={clsx(
+            'text-sm',
+            darkMode ? 'text-gray-400' : 'text-gray-600'
+          )}>
             Extract keywords and topics from your content
           </p>
         </div>
 
         <div className="space-y-4">
           {/* Input Section */}
-          <div className="p-4 rounded-xl bg-[#1A1F2E] border border-gray-800">
+          <div className={clsx(
+            'p-4 rounded-xl border',
+            darkMode 
+              ? 'bg-[#1A1F2E] border-gray-800' 
+              : 'bg-white border-gray-200'
+          )}>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter your content here..."
-              className="w-full h-48 p-4 rounded-lg resize-y mb-4 bg-[#0B0F17] border border-gray-800 text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-shadow"
+              className={clsx(
+                'w-full h-48 p-4 rounded-lg resize-y mb-4 border focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-shadow',
+                darkMode
+                  ? 'bg-[#0B0F17] border-gray-800 text-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-900'
+              )}
             />
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -104,7 +134,12 @@ export default function KeywordExtractor() {
               {result && (
                 <button
                   onClick={handleCopy}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors bg-[#0B0F17] hover:bg-gray-800 text-gray-300"
+                  className={clsx(
+                    'flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors',
+                    darkMode
+                      ? 'bg-[#0B0F17] hover:bg-gray-800 text-gray-300'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  )}
                 >
                   {copied ? (
                     <>
@@ -122,7 +157,10 @@ export default function KeywordExtractor() {
             </div>
 
             {error && (
-              <div className="mt-4 p-4 rounded-lg text-sm bg-red-500/20 text-red-300">
+              <div className={clsx(
+                'mt-4 p-4 rounded-lg text-sm',
+                darkMode ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-800'
+              )}>
                 {error}
               </div>
             )}
@@ -133,36 +171,82 @@ export default function KeywordExtractor() {
             <div className="space-y-4">
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-[#1A1F2E] border border-gray-800 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm text-gray-300">{result.contentType}</span>
+                <div className={clsx(
+                  'p-3 rounded-lg border flex items-center gap-2',
+                  darkMode 
+                    ? 'bg-[#1A1F2E] border-gray-800' 
+                    : 'bg-white border-gray-200'
+                )}>
+                  <FileText className={clsx(
+                    'w-4 h-4',
+                    darkMode ? 'text-blue-400' : 'text-blue-500'
+                  )} />
+                  <span className={clsx(
+                    'text-sm',
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  )}>{result.contentType}</span>
                 </div>
-                <div className="p-3 rounded-lg bg-[#1A1F2E] border border-gray-800 flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-gray-300">{result.mainTheme}</span>
+                <div className={clsx(
+                  'p-3 rounded-lg border flex items-center gap-2',
+                  darkMode 
+                    ? 'bg-[#1A1F2E] border-gray-800' 
+                    : 'bg-white border-gray-200'
+                )}>
+                  <Tag className={clsx(
+                    'w-4 h-4',
+                    darkMode ? 'text-purple-400' : 'text-purple-500'
+                  )} />
+                  <span className={clsx(
+                    'text-sm',
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  )}>{result.mainTheme}</span>
                 </div>
               </div>
 
               {/* Content Summary */}
-              <div className="p-4 rounded-xl bg-[#1A1F2E] border border-gray-800">
-                <h3 className="text-sm font-medium mb-2 text-gray-300">
+              <div className={clsx(
+                'p-4 rounded-xl border',
+                darkMode 
+                  ? 'bg-[#1A1F2E] border-gray-800' 
+                  : 'bg-white border-gray-200'
+              )}>
+                <h3 className={clsx(
+                  'text-sm font-medium mb-2',
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                )}>
                   Content Summary
                 </h3>
-                <p className="text-sm text-gray-300">
+                <p className={clsx(
+                  'text-sm',
+                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                )}>
                   {result.contentSummary}
                 </p>
               </div>
 
               {/* Keywords */}
-              <div className="p-4 rounded-xl bg-[#1A1F2E] border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4 text-white">
+              <div className={clsx(
+                'p-4 rounded-xl border',
+                darkMode 
+                  ? 'bg-[#1A1F2E] border-gray-800' 
+                  : 'bg-white border-gray-200'
+              )}>
+                <h3 className={clsx(
+                  'text-lg font-semibold mb-4',
+                  darkMode ? 'text-white' : 'text-gray-900'
+                )}>
                   Keywords
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {result.keywords.map((keyword, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-blue-500/20 text-blue-300"
+                      className={clsx(
+                        'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+                        darkMode
+                          ? 'bg-blue-500/20 text-blue-300'
+                          : 'bg-blue-100 text-blue-700'
+                      )}
                     >
                       <Key className="w-3.5 h-3.5" />
                       <span>{keyword}</span>
@@ -175,15 +259,28 @@ export default function KeywordExtractor() {
               </div>
 
               {/* Topics */}
-              <div className="p-4 rounded-xl bg-[#1A1F2E] border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4 text-white">
+              <div className={clsx(
+                'p-4 rounded-xl border',
+                darkMode 
+                  ? 'bg-[#1A1F2E] border-gray-800' 
+                  : 'bg-white border-gray-200'
+              )}>
+                <h3 className={clsx(
+                  'text-lg font-semibold mb-4',
+                  darkMode ? 'text-white' : 'text-gray-900'
+                )}>
                   Topics
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {result.topics.map((topic, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-purple-500/20 text-purple-300"
+                      className={clsx(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm',
+                        darkMode
+                          ? 'bg-purple-500/20 text-purple-300'
+                          : 'bg-purple-100 text-purple-700'
+                      )}
                     >
                       <Tag className="w-3.5 h-3.5" />
                       <span>{topic}</span>

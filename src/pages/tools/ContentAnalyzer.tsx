@@ -4,7 +4,7 @@ import { analyzeContent } from '../../services/geminiService';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ErrorMessage } from '../../components/ErrorMessage';
 import { ArrowLeft, FileText, Wand2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
@@ -183,7 +183,11 @@ const ContentAnalyzer: React.FC = () => {
 
       <main className="px-4 py-6 sm:py-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          <div className="text-center space-y-3">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-3"
+          >
             <div className="flex items-center justify-center gap-3">
               <FileText className={clsx(
                 'w-8 h-8',
@@ -197,48 +201,57 @@ const ContentAnalyzer: React.FC = () => {
             )}>
               Analyze your content for SEO optimization and improvement suggestions
             </p>
-          </div>
+          </motion.div>
 
-          <div className={clsx(
-            'rounded-xl p-6',
-            darkMode ? 'bg-gray-800/50' : 'bg-white'
-          )}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className={clsx(
+              'rounded-2xl p-6 max-w-5xl mx-auto', 
+              darkMode ? 'bg-[#1A1F2E]' : 'bg-white',
+              'border',
+              darkMode ? 'border-gray-800' : 'border-gray-200'
+            )}
+          >
+            <h2 className={clsx(
+              'text-xl font-semibold mb-4',
+              darkMode ? 'text-white' : 'text-gray-900'
+            )}>
+              Content to Analyze
+            </h2>
             <textarea
-              className={clsx(
-                'w-full h-64 p-4 rounded-lg bg-transparent border resize-none focus:outline-none focus:ring-2 transition-shadow',
-                darkMode 
-                  ? 'border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-500'
-                  : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 placeholder-gray-400'
-              )}
-              placeholder="Enter your content here..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              placeholder="Paste your content here..."
+              className={clsx(
+                'w-full h-64 p-4 rounded-lg',
+                'border focus:ring-2 focus:ring-blue-500 outline-none',
+                darkMode
+                  ? 'bg-[#0B0F17] border-gray-800 text-gray-100'
+                  : 'bg-gray-50 border-gray-200 text-gray-900'
+              )}
             />
             <div className="mt-4 flex justify-end">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleAnalyze}
-                disabled={!content.trim() || isLoading}
+                disabled={isLoading}
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
-                  !content.trim() || isLoading
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                  'px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2',
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90',
+                  'bg-blue-500 text-white'
                 )}
               >
                 {isLoading ? (
-                  <>
-                    <LoadingSpinner className="w-4 h-4" />
-                    Analyzing...
-                  </>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <>
-                    <Wand2 className="w-4 h-4" />
-                    Analyze Content
-                  </>
+                  'Analyze Content'
                 )}
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Analysis Results */}
           {analysis && (

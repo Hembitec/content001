@@ -95,6 +95,15 @@ export interface ContentOptimizationResponse {
   };
 }
 
+export interface HeadlineGenerationResponse {
+  headlines: string[];
+  analysis: {
+    tone: string;
+    impact: string;
+    suggestions: string[];
+  };
+}
+
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
 const systemPrompt = `You are an advanced content optimization AI. Analyze the provided content and return a detailed JSON response. You MUST include at least 7 main keywords and 7 LSI keywords, and populate ALL sections of the analysis. Here's the required structure:
@@ -454,4 +463,91 @@ export const analyzeContent = async (
   }
 
   throw new Error('Maximum retry attempts reached. Please try again later.');
+};
+
+export const generateHeadlines = async (
+  content: string,
+  apiKey: string,
+  options: {
+    style?: 'professional' | 'creative' | 'news' | 'blog' | 'social';
+    tone?: 'formal' | 'casual' | 'persuasive' | 'informative';
+    count?: number;
+  } = {}
+): Promise<HeadlineGenerationResponse> => {
+  let retryCount = 0;
+  let currentTimeout = INITIAL_TIMEOUT;
+
+  const prompt = `Generate engaging headlines for the following content. Return the response in this exact JSON format:
+{
+  "headlines": ["headline1", "headline2", "headline3"],
+  "analysis": {
+    "tone": "description of the tone used",
+    "impact": "analysis of the potential impact",
+    "suggestions": ["suggestion1", "suggestion2"]
+  }
+}
+
+Content: ${content}
+Style: ${options.style || 'professional'}
+Tone: ${options.tone || 'persuasive'}
+Number of headlines: ${options.count || 5}`;
+
+  while (retryCount < MAX_RETRIES) {
+    try {
+      console.log(`Attempt ${retryCount + 1} of ${MAX_RETRIES}...`);
+      
+      const instance = axios.create({
+        timeout: currentTimeout,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const requestData = {
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          candidateCount: 1,
+          maxOutputTokens: 2048,
+          topP: 0.8,
+          topK: 40
+        }
+      };
+
+      console.log('Making API request to Gemini...');
+      const response = await instance.post(
+        `${GEMINI_API_URL}?key=${apiKey}`,
+        requestData
+      );
+
+      if (!response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid response from Gemini API');
+      }
+
+      const result = JSON.parse(response.data.candidates[0].content.parts[0].text);
+      
+      if (!result.headlines || !Array.isArray(result.headlines) || result.headlines.length === 0) {
+        throw new Error('No headlines generated');
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error('Error generating headlines:', error);
+      retryCount++;
+      currentTimeout *= BACKOFF_MULTIPLIER;
+
+      if (retryCount === MAX_RETRIES) {
+        throw new Error('Failed to generate headlines after multiple attempts');
+      }
+      
+      console.log(`Retrying in ${currentTimeout/1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  throw new Error('Failed to generate headlines');
 };

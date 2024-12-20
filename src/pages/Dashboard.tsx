@@ -12,7 +12,7 @@ import {
   MessageSquare,
   Image,
   Scissors,
-  Type,
+  Heading,
   Languages,
   Hash,
   Repeat,
@@ -74,7 +74,7 @@ export function Dashboard() {
         },
         {
           title: 'Keyword Extractor',
-          description: 'Extract key terms and topics from your content',
+          description: 'Extract keywords and topics from your content',
           icon: Key,
           to: '/tools/keyword-extractor',
           isNew: true
@@ -82,15 +82,9 @@ export function Dashboard() {
         {
           title: 'Headline Generator',
           description: 'Create engaging headlines and titles for your content',
-          icon: Type,
+          icon: Heading,
           to: '/tools/headline-generator',
           isNew: true
-        },
-        {
-          title: 'Social Media Converter',
-          description: 'Transform content for different social platforms',
-          icon: Share2,
-          to: '/tools/social-converter'
         },
         {
           title: 'Hashtag Generator',
@@ -98,6 +92,12 @@ export function Dashboard() {
           icon: Hash,
           to: '/tools/hashtag-generator',
           isNew: true
+        },
+        {
+          title: 'Social Media Converter',
+          description: 'Transform content for different social platforms',
+          icon: Share2,
+          to: '/tools/social-converter'
         }
       ]
     },

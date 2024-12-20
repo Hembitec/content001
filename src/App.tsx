@@ -8,6 +8,7 @@ import { SocialMediaConverter } from './pages/tools/SocialMediaConverter';
 import ContentSummarizer from './pages/tools/ContentSummarizer';
 import ContentRephraser from './pages/tools/ContentRephraser';
 import KeywordExtractor from './pages/tools/KeywordExtractor';
+import HeadlineGenerator from './pages/tools/HeadlineGenerator';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -53,7 +54,8 @@ function AppRoutes() {
        location.pathname !== '/tools/social-converter' &&
        location.pathname !== '/tools/summarizer' &&
        location.pathname !== '/tools/rephraser' &&
-       location.pathname !== '/tools/keyword-extractor' && <Header />}
+       location.pathname !== '/tools/keyword-extractor' &&
+       location.pathname !== '/tools/headline-generator' && <Header />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/verify" element={<VerifyEmail />} />
@@ -71,6 +73,11 @@ function AppRoutes() {
         <Route path="/tools/summarizer" element={<ContentSummarizer />} />
         <Route path="/tools/rephraser" element={<ContentRephraser />} />
         <Route path="/tools/keyword-extractor" element={<KeywordExtractor />} />
+        <Route path="/tools/headline-generator" element={
+          <ProtectedRoute>
+            <HeadlineGenerator />
+          </ProtectedRoute>
+        } />
       </Routes>
     </div>
   );
