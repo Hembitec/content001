@@ -33,6 +33,7 @@ export default function NLPGenerator() {
   const [contentType, setContentType] = useState('blog');
   const [tone, setTone] = useState('professional');
   const [length, setLength] = useState('medium');
+  const [language, setLanguage] = useState('English');
   const [keynotes, setKeynotes] = useState(analysisData?.additionalNotes || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +57,13 @@ export default function NLPGenerator() {
 
   const handleGenerate = async () => {
     if (!title.trim()) {
-      setError('Please enter a title or topic');
+      setError('Please enter a title');
       return;
     }
 
     setIsGenerating(true);
     setError(null);
+    setGeneratedContent(null);
 
     try {
       const result = await generateContent({
@@ -70,6 +72,7 @@ export default function NLPGenerator() {
         contentType,
         tone,
         length,
+        language,
         keynotes: keynotes.trim() || undefined
       });
       setGeneratedContent(result);
@@ -279,9 +282,9 @@ export default function NLPGenerator() {
               </div>
 
               {/* Length */}
-              <div className="space-y-2">
+              <div>
                 <label className={clsx(
-                  'block text-sm font-medium',
+                  'block text-sm font-medium mb-2',
                   darkMode ? 'text-gray-300' : 'text-gray-700'
                 )}>
                   Length
@@ -299,6 +302,38 @@ export default function NLPGenerator() {
                   <option value="short">Short</option>
                   <option value="medium">Medium</option>
                   <option value="long">Long</option>
+                </select>
+              </div>
+
+              {/* Language */}
+              <div>
+                <label className={clsx(
+                  'block text-sm font-medium mb-2',
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                )}>
+                  Language
+                </label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className={clsx(
+                    'w-full px-4 py-2 rounded-lg border transition-colors',
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  )}
+                >
+                  <option value="English">English</option>
+                  <option value="Spanish">Spanish</option>
+                  <option value="French">French</option>
+                  <option value="German">German</option>
+                  <option value="Italian">Italian</option>
+                  <option value="Portuguese">Portuguese</option>
+                  <option value="Dutch">Dutch</option>
+                  <option value="Russian">Russian</option>
+                  <option value="Chinese">Chinese</option>
+                  <option value="Japanese">Japanese</option>
+                  <option value="Korean">Korean</option>
                 </select>
               </div>
             </div>

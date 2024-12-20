@@ -6,6 +6,7 @@ interface GenerateContentParams {
   contentType: string;
   tone: string;
   length: string;
+  language: string;
   keynotes?: string;
 }
 
@@ -23,7 +24,7 @@ export const generateContent = async (params: GenerateContentParams): Promise<Ge
     throw new Error('Title is required');
   }
 
-  const { title, keywords, contentType, tone, length, keynotes } = params;
+  const { title, keywords, contentType, tone, length, language, keynotes } = params;
 
   try {
     const result = await generateStructuredContent(
@@ -32,6 +33,7 @@ export const generateContent = async (params: GenerateContentParams): Promise<Ge
       contentType || 'blog',
       tone || 'professional',
       length || 'medium',
+      language || 'English',
       keynotes
     );
 

@@ -9,43 +9,25 @@ export async function generateContent(prompt: string): Promise<string> {
   }
 
   try {
-    // For text-only input, use the gemini-pro model
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-    const generationConfig = {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.8,
-      maxOutputTokens: 4096,
-    };
-
     const result = await model.generateContent({
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }],
-      generationConfig
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 1,
+        topP: 1,
+        maxOutputTokens: 4096,
+      },
     });
-    
+
     if (!result.response) {
-      throw new Error('No response received from Gemini API');
+      throw new Error('No response from Gemini API');
     }
 
-    const response = result.response;
-    const text = response.text();
-    
-    if (!text) {
-      throw new Error('Empty response received from Gemini API');
-    }
-
-    return text;
+    return result.response.text();
   } catch (error) {
-    console.error('Error generating content:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to generate content: ${error.message}`);
-    }
-    throw new Error('Failed to generate content. Please try again.');
+    console.error('Error calling Gemini API:', error);
+    throw error;
   }
 }
 
@@ -63,141 +45,200 @@ export async function generateStructuredContent(
   contentType: string,
   tone: string,
   length: string,
+  language: string,
   keynotes?: string
 ): Promise<GeneratedContent> {
-  const prompt = `You are a professional content writer. Generate a ${contentType} about "${title}" following these exact specifications:
+  const getContentStructure = (type: string) => {
+    switch(type.toLowerCase()) {
+      case 'email':
+      case 'newsletter':
+        return `
+Create a long-form email newsletter with:
+• An engaging main title (H1)
+• A compelling introduction that hooks the reader
+• 3-4 well-developed main sections with clear headings (H2)
+• Supporting points and examples under each section
+• Relevant bullet points or numbered lists where appropriate
+• Data points or statistics to support key arguments
+• Expert quotes or insights where relevant
+• A clear conclusion
+• Call-to-action at the end
 
-Key Requirements:
-- Topic: ${title}
-- Type: ${contentType}
+Content Guidelines:
+• Write in a conversational yet professional tone
+• Break down complex topics into digestible sections
+• Use examples and analogies to explain concepts
+• Include relevant statistics or data points
+• Add bullet points for key takeaways
+• Maintain consistent formatting throughout
+• End with a strong call-to-action
+
+Structure Example:
+<h1>[Compelling Main Title]</h1>
+
+<p>[Engaging introduction that sets up the topic and why it matters]</p>
+
+<h2>[First Main Point]</h2>
+<p>[Detailed explanation with examples]</p>
+<ul>
+    <li>[Key takeaway 1]</li>
+    <li>[Key takeaway 2]</li>
+</ul>
+
+<h2>[Second Main Point]</h2>
+<p>[Supporting content with data or expert insights]</p>
+
+<h2>[Third Main Point]</h2>
+<p>[Practical applications or actionable advice]</p>
+
+<h2>Key Takeaways</h2>
+<ul>
+    <li>[Main insight 1]</li>
+    <li>[Main insight 2]</li>
+    <li>[Main insight 3]</li>
+</ul>
+
+<p>[Strong conclusion with next steps]</p>
+<p>[Clear call-to-action]</p>`;
+
+      case 'blog post':
+        return `
+Create a blog post with:
+• Main title at the top
+• Engaging introduction
+• 3-5 main sections with descriptive headings
+• Relevant subsections under each main section
+• Bullet points or numbered lists where it adds value
+• Clear conclusion
+• Call to action at the end`;
+
+      case 'article':
+        return `
+Create an article with:
+• Compelling main title
+• Strong introductory paragraph
+• 4-6 main sections with informative headings
+• Supporting evidence and quotes
+• Statistics and data points where relevant
+• Thorough conclusion`;
+
+      case 'product description':
+        return `
+Create a product description with:
+• Attention-grabbing product title
+• Compelling overview paragraph
+• Key features and benefits (as bullet points)
+• Technical specifications section
+• Use cases or applications section
+• Clear call to action`;
+
+      case 'social media post':
+        return `
+Create a social media post with:
+• Catchy headline
+• Engaging main message
+• Key points (if needed)
+• Relevant hashtags
+• Compelling call to action`;
+
+      default:
+        return `
+Create content with:
+• Clear main title
+• Strong introduction
+• Well-organized main sections
+• Supporting subsections
+• Relevant lists or bullet points
+• Proper conclusion`;
+    }
+  };
+
+  const prompt = `You are a professional content writer. Write in ${language}.
+
+Create a NEW, COMPLETE ${contentType} about "${title}" with these specifications:
+- Language: ${language} (IMPORTANT: ALL output must be in ${language})
 - Tone: ${tone}
-- Length: ${length} (${length === 'short' ? '~800' : length === 'medium' ? '~1500' : '~3000'} words)
+- Length: ${length === 'short' ? '~800' : length === 'medium' ? '~1500' : '~3000'} words
 ${keywords.length > 0 ? `- Keywords: ${keywords.join(', ')}` : ''}
-${keynotes ? `- Additional Requirements: ${keynotes}` : ''}
+${keynotes ? `- Additional Notes: ${keynotes}` : ''}
 
-Title Generation Rules:
-1. Use simple English that non-native speakers can easily understand
-2. If a concept needs explanation, include a brief clarification
-3. Avoid using complex or overused phrases like: revolutionize, dive in, venture, innovative, realm, adhere, delve, reimagine, robust, orchestrate, diverse, commendable, embrace, paramount, beacon, captivate, breakthrough, cutting-edge, groundbreaking, transformative, elevate, leverage, resonate, foster, endeavor, embark, unleash, renowned, bespoke, whimsical, meticulous, emerge, refrain, vibrant, reimagine, evolve, supercharge, pivotal, unlocking
-4. Keep titles clear, direct, and informative without buzzwords
+IMPORTANT: Create a completely new, standalone piece of content. Do NOT continue or reference any section numbers from elsewhere.
 
-Your response MUST follow this EXACT format with these EXACT headings:
+${getContentStructure(contentType)}
 
-===META INFORMATION START===
-SEO Title: [Write a clear, simple 60-character max title following the rules above]
-Meta Description: [Write a compelling 160-character max description using simple language]
-Target Keywords: [List 3-5 relevant keywords]
-Target Audience: [Specify primary and secondary audience]
-===META INFORMATION END===
+HTML Formatting Instructions:
+${contentType.toLowerCase() === 'email' || contentType.toLowerCase() === 'newsletter' ? `
+1. Use clean, email-friendly HTML
+2. Keep formatting minimal and professional
+3. Use <div> for sections
+4. Use <p> for paragraphs
+5. Use <h1> for subject line only
+6. Use <h2> for section headings
+7. Use <ul> and <li> for bullet points
+8. Add appropriate spacing between sections` : `
+1. Start with a single main title using <h1>
+2. Use <h2> for main section headings
+3. Use <h3> for subsection headings (if needed)
+4. Wrap paragraphs in <p> tags
+5. Use <ul> and <li> for bullet points
+6. Use <ol> and <li> for numbered lists
+7. Use <blockquote> for quotes
+8. Use <strong> for emphasis
+9. Keep the HTML structure clean and consistent`}
+
+Output Format (keep these markers in English, but content in ${language}):
+
+===META START===
+Title: [Title in ${language}]
+Description: [Description in ${language}]
+Keywords: [Keywords in ${language}]
+Audience: [Target audience in ${language}]
+===META END===
 
 ===CONTENT START===
-[Write the full content here using proper HTML tags for structure]
-- Use <h1> for main title
-- Use <h2> for major sections
-- Use <h3> for subsections
-- Use <p> for paragraphs
-- Use <ul> and <li> for bullet points
-- Use <ol> and <li> for numbered lists
-- Use <blockquote> for quotes
-- Use <strong> for emphasis
+[Content following the structure and formatting guide above]
 ===CONTENT END===
 
-Important:
-1. STRICTLY follow the format above with the EXACT section markers
-2. Ensure all content is properly formatted with HTML tags
-3. Make the content engaging and well-structured
-4. Maintain the specified tone throughout
-5. Naturally incorporate all keywords
-6. Use simple, clear language throughout`;
+Remember:
+1. Create FRESH content - don't continue numbering from elsewhere
+2. Each section should have its own logical flow
+3. Use descriptive headings instead of generic "Section 1", "Section 2", etc.
+4. Ensure proper HTML formatting throughout`;
 
   try {
     const generatedText = await generateContent(prompt);
-    console.log('Generated text:', generatedText); // For debugging
+    
+    // Extract sections using regex
+    const metaSection = generatedText.match(/===META START===([\s\S]*?)===META END===/);
+    const contentSection = generatedText.match(/===CONTENT START===([\s\S]*?)===CONTENT END===/);
 
-    // More flexible section matching
-    const metaMatch = generatedText.match(/===META INFORMATION START===([\s\S]*?)===META INFORMATION END===|SEO Title:([\s\S]*?)(?====CONTENT START===)/i);
-    const contentMatch = generatedText.match(/===CONTENT START===([\s\S]*?)===CONTENT END===|<h1>([\s\S]*?)$/i);
-
-    if (!metaMatch || !contentMatch) {
-      console.error('Failed to parse response. Generated text:', generatedText);
+    if (!metaSection || !contentSection) {
+      console.error('Generated text:', generatedText);
       throw new Error('Failed to parse generated content - invalid format');
     }
 
-    // Get the matched content, checking both capture groups
-    const metaText = (metaMatch[1] || metaMatch[2] || '').trim();
-    const contentText = (contentMatch[1] || contentMatch[2] || '').trim();
+    const metaText = metaSection[1].trim();
+    const contentText = contentSection[1].trim();
 
-    // More flexible meta information parsing
-    const titleMatch = metaText.match(/SEO Title:?\s*(.+?)(?=\n|$)/i);
-    const descMatch = metaText.match(/Meta Description:?\s*(.+?)(?=\n|$)/i);
-    const keywordsMatch = metaText.match(/Target Keywords:?\s*(.+?)(?=\n|$)/i);
-    const audienceMatch = metaText.match(/Target Audience:?\s*(.+?)(?=\n|$)/i);
+    // Parse meta information
+    const titleMatch = metaText.match(/Title:\s*(.+?)(?=\n|$)/i);
+    const descMatch = metaText.match(/Description:\s*(.+?)(?=\n|$)/i);
+    const keywordsMatch = metaText.match(/Keywords:\s*(.+?)(?=\n|$)/i);
+    const audienceMatch = metaText.match(/Audience:\s*(.+?)(?=\n|$)/i);
 
-    // If meta information is missing, try to extract from content
-    const title = titleMatch ? titleMatch[1].trim() : extractTitle(contentText);
-    const metaDescription = descMatch ? descMatch[1].trim() : generateMetaDescription(contentText);
-    const keywords = keywordsMatch 
-      ? keywordsMatch[1].split(/,|;/).map(k => k.trim()).filter(k => k)
-      : extractKeywords(contentText);
-    const targetAudience = audienceMatch 
-      ? audienceMatch[1].trim() 
-      : "General audience interested in this topic";
-
-    // Clean and format content
-    let cleanContent = contentText
-      .replace(/\[Write the full content here using proper HTML tags for structure\]/, '')
-      .replace(/- Use <[^>]+> for [^\n]+\n?/g, '')
-      .trim();
-
-    // Ensure content has basic HTML structure
-    if (!cleanContent.includes('<')) {
-      cleanContent = `<h1>${title}</h1>\n<p>${cleanContent}</p>`;
-    }
-
-    if (!cleanContent) {
-      throw new Error('Generated content is empty');
+    if (!titleMatch || !descMatch || !keywordsMatch || !audienceMatch) {
+      throw new Error('Failed to parse meta information');
     }
 
     return {
-      title,
-      metaDescription,
-      keywords,
-      targetAudience,
-      content: cleanContent
+      title: titleMatch[1].trim(),
+      metaDescription: descMatch[1].trim(),
+      keywords: keywordsMatch[1].split(',').map(k => k.trim()),
+      targetAudience: audienceMatch[1].trim(),
+      content: contentText
     };
   } catch (error) {
     console.error('Error generating structured content:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to generate content: ${error.message}`);
-    }
-    throw new Error('Failed to generate content. Please try again.');
+    throw error;
   }
-}
-
-// Helper functions for content parsing
-function extractTitle(content: string): string {
-  const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-  if (h1Match) return h1Match[1].trim();
-  
-  const firstLine = content.split('\n')[0];
-  return firstLine.replace(/<[^>]+>/g, '').trim();
-}
-
-function generateMetaDescription(content: string): string {
-  const cleanText = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  return cleanText.substring(0, 157) + '...';
-}
-
-function extractKeywords(content: string): string[] {
-  const cleanText = content.replace(/<[^>]+>/g, ' ').toLowerCase();
-  const words = cleanText.split(/\W+/);
-  const wordFreq = words.reduce((acc: {[key: string]: number}, word) => {
-    if (word.length > 3) acc[word] = (acc[word] || 0) + 1;
-    return acc;
-  }, {});
-  
-  return Object.entries(wordFreq)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 5)
-    .map(([word]) => word);
 }
