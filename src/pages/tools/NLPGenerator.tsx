@@ -81,6 +81,21 @@ export default function NLPGenerator() {
     }
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      // Strip HTML tags and decode HTML entities
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = text;
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
+      
+      await navigator.clipboard.writeText(plainText);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   return (
     <div className={clsx(
       'min-h-screen',
@@ -366,13 +381,7 @@ export default function NLPGenerator() {
                   </h2>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedContent.content)
-                          .then(() => {
-                            setIsCopied(true);
-                            setTimeout(() => setIsCopied(false), 2000);
-                          });
-                      }}
+                      onClick={() => copyToClipboard(generatedContent.content)}
                       className={clsx(
                         'p-2 rounded-lg transition-colors',
                         darkMode
