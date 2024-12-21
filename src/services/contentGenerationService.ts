@@ -39,6 +39,96 @@ export interface GeneratedContent {
   content: string;
 }
 
+// List of banned keywords and phrases to avoid in content generation
+export const BANNED_KEYWORDS = [
+  // Overused Corporate/Tech Buzzwords
+  'revolutionize', 'dive in', 'venture', 'innovative', 'realm', 
+  'adhere', 'delve', 'reimagine', 'robust', 'orchestrate', 
+  'diverse', 'commendable', 'embrace', 'paramount', 'beacon', 
+  'captivate', 'unlocking', 'unlock', 'unlocking the power', 
+  'unlocking the potential',
+
+  // Additional Overused Tech and Business Phrases
+  'game-changer', 'disruptive', 'synergize', 'leverage', 
+  'ecosystem', 'paradigm shift', 'mission-critical', 
+  'best-in-class', 'thought leadership', 'deep dive', 
+  'drill down', 'circle back', 'bandwidth', 'scalable', 
+  'bleeding edge', 'mission-critical', 'low-hanging fruit',
+
+  // Grandiose Claim Phrases
+  'advancement in the realm', 'aims to bridge', 'aims to democratize', 
+  'aims to foster innovation and collaboration', 'becomes increasingly evident', 
+  'behind the veil', 'breaking barriers', 'breakthrough has the potential to revolutionize',
+  'bringing us', 'bringing us closer to a future',
+
+  // Overused Progress and Innovation Phrases
+  'by combining the capabilities', 'by harnessing the power', 
+  'capturing the attention', 'continue to advance', 
+  'continue to make significant strides', 'continue to push the boundaries', 
+  'continues to progress rapidly',
+
+  // Overintellectualized Language
+  'crucial to be mindful', 'crucially', 'cutting-edge', 'drive the next big', 
+  'encompasses a wide range of real-life scenarios', 'enhancement further enhances', 
+  'ensures that even', 'essential to understand the nuances',
+
+  // Emotional Inflation Words
+  'excitement', 'exciting opportunities'
+];
+
+/**
+ * Filters out banned keywords from generated content
+ * @param content The generated content to filter
+ * @returns Filtered content with banned keywords replaced
+ */
+export function filterBannedKeywords(content: string): string {
+  let filteredContent = content;
+
+  // Create a mapping of banned keywords to more natural alternatives
+  const replacementMap: {[key: string]: string} = {
+    'revolutionize': 'improve significantly',
+    'innovative': 'effective',
+    'dive in': 'explore',
+    'venture': 'approach',
+    'realm': 'area',
+    'cutting-edge': 'advanced',
+    'breakthrough': 'significant development',
+    'unlocking': 'revealing',
+    'unlock': 'open',
+    'game-changer': 'significant improvement',
+    'disruptive': 'transformative',
+    'synergize': 'collaborate',
+    'leverage': 'use',
+    'ecosystem': 'environment',
+    'paradigm shift': 'fundamental change',
+    'mission-critical': 'essential',
+    'best-in-class': 'top-performing',
+    'thought leadership': 'expert insights',
+    'deep dive': 'thorough examination',
+    'drill down': 'examine closely',
+    'circle back': 'revisit',
+    'bandwidth': 'capacity',
+    'scalable': 'adaptable',
+    'bleeding edge': 'most advanced',
+    'low-hanging fruit': 'easy opportunities'
+  };
+
+  // Replace banned keywords with more natural alternatives
+  BANNED_KEYWORDS.forEach(keyword => {
+    // Create case-insensitive regex for whole word matching
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    
+    // If a replacement exists, use it. Otherwise, remove the keyword
+    if (replacementMap[keyword.toLowerCase()]) {
+      filteredContent = filteredContent.replace(regex, replacementMap[keyword.toLowerCase()]);
+    } else {
+      filteredContent = filteredContent.replace(regex, '');
+    }
+  });
+
+  return filteredContent.replace(/\s+/g, ' ').trim();
+}
+
 export async function generateStructuredContent(
   title: string,
   keywords: string[],
@@ -226,7 +316,10 @@ Remember:
     }
 
     const metaText = metaSection[1].trim();
-    const contentText = contentSection[1].trim();
+    let contentText = contentSection[1].trim();
+
+    // Filter out banned keywords from the content
+    contentText = filterBannedKeywords(contentText);
 
     // Parse meta information
     const titleMatch = metaText.match(/Title:\s*(.+?)(?=\n|$)/i);
