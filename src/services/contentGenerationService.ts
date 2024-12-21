@@ -153,16 +153,22 @@ Create content with:
     }
   };
 
-  const prompt = `You are a professional content writer. Write in ${language}.
+  const prompt = `Write a conversational and relatable piece about "${title}" while maintaining professionalism. Keep the tone natural and engaging, using a mix of short and medium-length sentences. Let the content flow naturally while staying focused and valuable to the reader.
 
-Create a NEW, COMPLETE ${contentType} about "${title}" with these specifications:
-- Language: ${language} (IMPORTANT: ALL output must be in ${language})
-- Tone: ${tone}
-- Length: ${length === 'short' ? '~800' : length === 'medium' ? '~1500' : '~3000'} words
-${keywords.length > 0 ? `- Keywords: ${keywords.join(', ')}` : ''}
-${keynotes ? `- Additional Notes: ${keynotes}` : ''}
+Language: ${language} (IMPORTANT: ALL output must be in ${language})
+Style: ${contentType}
+Tone: ${tone}
+Target Length: ${length === 'short' ? '~800' : length === 'medium' ? '~1500' : '~3000'} words
+${keywords.length > 0 ? `Keywords to naturally incorporate: ${keywords.join(', ')}` : ''}
+${keynotes ? `Additional context: ${keynotes}` : ''}
 
-IMPORTANT: Create a completely new, standalone piece of content. Do NOT continue or reference any section numbers from elsewhere.
+Content Guidelines:
+- Write like you're explaining to an interested colleague
+- Use real-world examples and scenarios
+- Break down complex ideas into digestible parts
+- Add relevant data points or expert insights naturally
+- Keep it professional but approachable
+- Focus on providing real value to the reader
 
 ${getContentStructure(contentType)}
 
@@ -200,10 +206,12 @@ Audience: [Target audience in ${language}]
 ===CONTENT END===
 
 Remember:
-1. Create FRESH content - don't continue numbering from elsewhere
-2. Each section should have its own logical flow
-3. Use descriptive headings instead of generic "Section 1", "Section 2", etc.
-4. Ensure proper HTML formatting throughout`;
+- Keep the writing natural and flowing
+- Use a conversational yet professional tone
+- Include practical examples and insights
+- Make complex topics relatable
+- Maintain clarity and value throughout
+- Stay focused on the reader's needs`;
 
   try {
     const generatedText = await generateContent(prompt);
