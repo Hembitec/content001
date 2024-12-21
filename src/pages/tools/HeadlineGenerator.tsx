@@ -112,6 +112,29 @@ export default function HeadlineGenerator() {
             'rounded-xl p-4 sm:p-6 space-y-6',
             darkMode ? 'bg-gray-800' : 'bg-white shadow-lg'
           )}>
+            {/* Content Input */}
+            <div>
+              <label className={clsx(
+                'block text-sm font-medium mb-2',
+                darkMode ? 'text-gray-300' : 'text-gray-700'
+              )}>
+                Topic or Content
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter your content topic or main idea"
+                rows={4}
+                className={clsx(
+                  'w-full px-3 py-2 rounded-lg',
+                  'border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none',
+                  darkMode
+                    ? 'bg-gray-900 border-gray-700 text-gray-100'
+                    : 'bg-white border-gray-200 text-gray-900'
+                )}
+              />
+            </div>
+
             {/* Options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -166,45 +189,22 @@ export default function HeadlineGenerator() {
               </div>
             </div>
 
-            {/* Content Input */}
-            <div>
-              <label className={clsx(
-                'block text-sm font-medium mb-2',
-                darkMode ? 'text-gray-300' : 'text-gray-700'
-              )}>
-                Content
-              </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter your content or topic here..."
-                rows={6}
-                className={clsx(
-                  'w-full px-3 py-2 rounded-lg',
-                  'border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none',
-                  darkMode
-                    ? 'bg-gray-900 border-gray-700 text-gray-100'
-                    : 'bg-white border-gray-200 text-gray-900'
-                )}
-              />
-            </div>
-
             {/* Generate Button */}
             <button
               onClick={handleGenerate}
               disabled={isLoading || !content.trim()}
               className={clsx(
-                'w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
+                'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors',
                 isLoading || !content.trim()
                   ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               )}
             >
               {isLoading ? (
-                <LoadingSpinner />
+                <LoadingSpinner className="w-5 h-5" />
               ) : (
                 <>
-                  <Wand2 className="w-4 h-4" />
+                  <Wand2 className="w-5 h-5" />
                   Generate Headlines
                 </>
               )}
@@ -220,33 +220,36 @@ export default function HeadlineGenerator() {
               'rounded-xl p-4 sm:p-6 space-y-6',
               darkMode ? 'bg-gray-800' : 'bg-white shadow-lg'
             )}>
-              <h2 className="text-xl font-semibold">Generated Headlines</h2>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                Generated Headlines
+              </h2>
               
               <div className="space-y-4">
                 {headlines.map((headline, index) => (
                   <div
                     key={index}
                     className={clsx(
-                      'p-4 rounded-lg flex items-center justify-between group',
+                      'p-4 rounded-lg flex items-center justify-between',
                       darkMode
                         ? 'bg-gray-900/50 hover:bg-gray-900'
                         : 'bg-gray-50 hover:bg-gray-100'
                     )}
                   >
-                    <p className="flex-1">{headline}</p>
+                    <p className="flex-1 text-lg">{headline}</p>
                     <button
                       onClick={() => copyToClipboard(headline, index)}
                       className={clsx(
                         'p-2 rounded-lg transition-colors',
                         darkMode
-                          ? 'hover:bg-gray-800'
-                          : 'hover:bg-gray-200'
+                          ? 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                          : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                       )}
+                      title={copiedIndex === index ? 'Copied!' : 'Copy to clipboard'}
                     >
                       {copiedIndex === index ? (
-                        <Check className="w-4 h-4 text-green-500" />
+                        <Check className="w-5 h-5 text-green-500" />
                       ) : (
-                        <Copy className="w-4 h-4" />
+                        <Copy className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -255,34 +258,25 @@ export default function HeadlineGenerator() {
 
               {/* Analysis */}
               {analysis && (
-                <div className="space-y-4 mt-8">
-                  <h3 className="text-lg font-semibold">Analysis</h3>
+                <div className="space-y-4 mt-8 border-t pt-6">
+                  <h3 className="text-lg font-semibold">Quick Analysis</h3>
                   
                   <div className={clsx(
-                    'space-y-4 p-4 rounded-lg',
+                    'space-y-6 p-4 rounded-lg',
                     darkMode ? 'bg-gray-900/50' : 'bg-gray-50'
                   )}>
                     <div>
                       <h4 className={clsx(
-                        'text-sm font-medium mb-1',
+                        'text-sm font-medium mb-2',
                         darkMode ? 'text-gray-300' : 'text-gray-700'
                       )}>
-                        Tone Analysis
+                        Tone & Style
                       </h4>
-                      <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                      <p className={clsx(
+                        'text-base leading-relaxed',
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      )}>
                         {analysis.tone}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className={clsx(
-                        'text-sm font-medium mb-1',
-                        darkMode ? 'text-gray-300' : 'text-gray-700'
-                      )}>
-                        Impact Analysis
-                      </h4>
-                      <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-                        {analysis.impact}
                       </p>
                     </div>
 
@@ -291,19 +285,39 @@ export default function HeadlineGenerator() {
                         'text-sm font-medium mb-2',
                         darkMode ? 'text-gray-300' : 'text-gray-700'
                       )}>
-                        Suggestions
+                        Expected Impact
                       </h4>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {analysis.suggestions.map((suggestion, index) => (
-                          <li
-                            key={index}
-                            className={darkMode ? 'text-gray-400' : 'text-gray-600'}
-                          >
-                            {suggestion}
-                          </li>
-                        ))}
-                      </ul>
+                      <p className={clsx(
+                        'text-base leading-relaxed',
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      )}>
+                        {analysis.impact}
+                      </p>
                     </div>
+
+                    {analysis.suggestions && analysis.suggestions.length > 0 && (
+                      <div>
+                        <h4 className={clsx(
+                          'text-sm font-medium mb-2',
+                          darkMode ? 'text-gray-300' : 'text-gray-700'
+                        )}>
+                          Pro Tips
+                        </h4>
+                        <ul className="list-disc pl-5 space-y-2">
+                          {analysis.suggestions.map((suggestion, index) => (
+                            <li
+                              key={index}
+                              className={clsx(
+                                'text-base leading-relaxed',
+                                darkMode ? 'text-gray-400' : 'text-gray-600'
+                              )}
+                            >
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

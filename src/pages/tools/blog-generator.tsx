@@ -14,10 +14,8 @@ interface BlogIdea {
   description: string;
   keywords: string[];
   tone: string;
-  suggestions: string[];
-  keyPoints: string[];
   targetAudience: string;
-  angles: string[];
+  painPoints: string[];
 }
 
 export default function BlogGenerator() {
@@ -45,19 +43,17 @@ export default function BlogGenerator() {
       });
       
       // Transform headlines into blog ideas with proper type checking
-      const newIdeas = (result.headlines || []).map(headline => ({
-        title: headline || '',
-        description: result.analysis?.summary || 'No description available',
-        keywords: Array.isArray(result.analysis?.keywords) ? result.analysis.keywords : [],
-        tone: result.analysis?.tone || 'balanced',
-        suggestions: result.analysis?.suggestions || [],
-        keyPoints: result.analysis?.keyPoints || [],
-        targetAudience: result.analysis?.targetAudience || '',
-        angles: result.analysis?.angles || []
+      const newIdeas = result.headlines.map((headline, index) => ({
+        title: headline,
+        description: result.analysis.summary || 'No description available',
+        keywords: result.analysis.keywords || [],
+        tone: result.analysis.tone || 'balanced',
+        targetAudience: result.analysis.targetAudience || '',
+        painPoints: result.analysis.painPoints || []
       }));
       
       setIdeas(newIdeas);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || 'Failed to generate blog ideas');
     } finally {
       setLoading(false);
@@ -66,7 +62,16 @@ export default function BlogGenerator() {
 
   const copyToClipboard = async (index: number) => {
     const idea = ideas[index];
-    const text = `Title: ${idea.title}\nDescription: ${idea.description}\nKeywords: ${idea.keywords.join(', ')}\nTone: ${idea.tone}`;
+    const text = `
+Title: ${idea.title}
+Description: ${idea.description}
+
+Target Audience & Pain Points:
+- Audience: ${idea.targetAudience}
+${idea.painPoints.map(point => `- Pain Point: ${point}`).join('\n')}
+
+Keywords: ${idea.keywords.join(', ')}
+    `.trim();
     
     try {
       await navigator.clipboard.writeText(text);
@@ -121,7 +126,7 @@ export default function BlogGenerator() {
               'text-sm',
               darkMode ? 'text-gray-400' : 'text-gray-600'
             )}>
-              Generate engaging blog ideas with titles, descriptions, and keywords
+              Generate engaging blog ideas with titles, descriptions, and keywords using Gemini 1.5
             </p>
           </motion.div>
 
@@ -130,6 +135,7 @@ export default function BlogGenerator() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="space-y-4"
           >
             <input
               type="text"
@@ -188,104 +194,104 @@ export default function BlogGenerator() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className={clsx(
-                    'p-6 rounded-lg border relative',
+                    'p-6 rounded-lg border',
                     darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
                   )}
                 >
-                  <button
-                    onClick={() => copyToClipboard(index)}
-                    className={clsx(
-                      'absolute top-4 right-4 p-2 rounded-lg',
-                      'transition-colors duration-200',
-                      darkMode
-                        ? 'hover:bg-gray-700'
-                        : 'hover:bg-gray-100'
-                    )}
-                  >
-                    {copiedIndex === index ? (
-                      <Check className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <Copy className="w-5 h-5" />
-                    )}
-                  </button>
-
-                  <h2 className="text-xl font-semibold mb-3 pr-12">{idea.title}</h2>
-                  <p className={clsx(
-                    'mb-4',
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
-                  )}>
-                    {idea.description}
-                  </p>
-                  
-                  {idea.keyPoints && idea.keyPoints.length > 0 && (
-                    <div className="mb-4">
-                      <h3 className={clsx(
-                        'text-sm font-semibold mb-2',
-                        darkMode ? 'text-gray-300' : 'text-gray-700'
-                      )}>
-                        Key Points to Cover:
-                      </h3>
-                      <ul className={clsx(
-                        'list-disc list-inside space-y-1',
-                        darkMode ? 'text-gray-400' : 'text-gray-600'
-                      )}>
-                        {idea.keyPoints.map((point, pIndex) => (
-                          <li key={pIndex}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {idea.targetAudience && (
-                    <div className="mb-4">
-                      <h3 className={clsx(
-                        'text-sm font-semibold mb-2',
-                        darkMode ? 'text-gray-300' : 'text-gray-700'
-                      )}>
-                        Target Audience:
-                      </h3>
-                      <p className={clsx(
-                        darkMode ? 'text-gray-400' : 'text-gray-600'
-                      )}>
-                        {idea.targetAudience}
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {idea.keywords.map((keyword, kIndex) => (
-                      <span
-                        key={kIndex}
-                        className={clsx(
-                          'px-3 py-1 rounded-full text-sm',
-                          darkMode
-                            ? 'bg-gray-700 text-gray-300'
-                            : 'bg-gray-100 text-gray-700'
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-4 flex-1">
+                      <h3 className="text-xl font-semibold">{idea.title}</h3>
+                      
+                      {/* Description */}
+                      {idea.description && (
+                        <p className={clsx(
+                          'text-sm',
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        )}>{idea.description}</p>
+                      )}
+                      
+                      <div className="space-y-4">
+                        {/* Target Audience & Pain Points */}
+                        {(idea.targetAudience || (idea.painPoints && idea.painPoints.length > 0)) && (
+                          <div>
+                            <h4 className={clsx(
+                              'text-sm font-medium mb-2',
+                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                            )}>Target Audience & Pain Points</h4>
+                            {idea.targetAudience && (
+                              <p className={clsx(
+                                'text-sm mb-2',
+                                darkMode ? 'text-gray-300' : 'text-gray-600'
+                              )}>
+                                <span className="font-medium">Audience:</span> {idea.targetAudience}
+                              </p>
+                            )}
+                            {idea.painPoints && idea.painPoints.length > 0 && (
+                              <div className="mt-2">
+                                <span className={clsx(
+                                  'text-sm font-medium',
+                                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                                )}>Common Challenges:</span>
+                                <ul className={clsx(
+                                  'list-disc pl-4 space-y-1 text-sm mt-1',
+                                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                                )}>
+                                  {idea.painPoints.map((point, pidx) => (
+                                    <li key={pidx}>{point}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         )}
-                      >
-                        {typeof keyword === 'string' ? keyword : ''}
-                      </span>
-                    ))}
-                  </div>
 
-                  {idea.angles && idea.angles.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className={clsx(
-                        'text-sm font-semibold mb-2',
-                        darkMode ? 'text-gray-300' : 'text-gray-700'
-                      )}>
-                        Angles to Explore:
-                      </h3>
-                      <ul className={clsx(
-                        'list-disc list-inside space-y-1',
-                        darkMode ? 'text-gray-400' : 'text-gray-600'
-                      )}>
-                        {idea.angles.map((angle, aIndex) => (
-                          <li key={aIndex}>{angle}</li>
-                        ))}
-                      </ul>
+                        {/* Keywords */}
+                        {idea.keywords && idea.keywords.length > 0 && (
+                          <div>
+                            <h4 className={clsx(
+                              'text-sm font-medium mb-2',
+                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                            )}>Keywords</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {idea.keywords.map((keyword, kidx) => (
+                                <span
+                                  key={kidx}
+                                  className={clsx(
+                                    'px-2 py-1 rounded-md text-xs',
+                                    darkMode 
+                                      ? 'bg-gray-700 text-gray-300' 
+                                      : 'bg-gray-100 text-gray-700'
+                                  )}
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    <button
+                      onClick={() => copyToClipboard(index)}
+                      className={clsx(
+                        'p-2 rounded-lg transition-colors duration-200',
+                        darkMode
+                          ? 'hover:bg-gray-700'
+                          : 'hover:bg-gray-100'
+                      )}
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === index ? (
+                        <Check className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Copy className={clsx(
+                          'w-5 h-5',
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        )} />
+                      )}
+                    </button>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>

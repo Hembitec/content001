@@ -116,55 +116,46 @@ interface CTAGenerationResponse {
 
 // Constants for API configuration
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
+// Use gemini-pro for now as gemini-1.5-pro might not be available in your region or API key
 const MAX_RETRIES = 3;
 const INITIAL_TIMEOUT = 60000; // 60 seconds
 const BACKOFF_MULTIPLIER = 2; // Used in makeGeminiRequest for exponential backoff
 
 // Prompt templates
-const createBlogPrompt = (content: string, tone: string, count: number) => `Generate a comprehensive blog idea including:
-- Title: A catchy and relevant title
-- Description: A brief summary of what the blog will cover
-- Keywords: A list of relevant keywords to target
+const createBlogPrompt = (content: string, tone: string, count: number) => `Hey! Let's brainstorm some blog ideas about "${content}". Think casual and friendly, like we're just chatting over coffee. 
 
-Ensure the content is engaging and informative, focusing on providing value to the reader. Use a professional tone and include actionable insights where possible.
+Writing Style:
+- Keep it super conversational, like you're talking to a friend
+- Mix up sentence lengths - some short, some medium (but nothing too complex!)
+- Throw in a few rhetorical questions
+- Don't worry about being too perfect - natural is better
+- Add some personality and maybe even a touch of humor where it fits
 
-For each blog idea, provide:
-- A compelling headline that draws interest
-- A natural description that explains the value to readers
-- Key points that could be covered
-- Target audience insights
-- Potential angles to explore
+For each blog idea, give me:
+1. A catchy, attention-grabbing headline (but keep it real, no clickbait!)
+2. A friendly, down-to-earth description that actually tells people what they'll learn
+3. Who this is really for (you know, the actual humans who'll be reading this)
+4. What problems or struggles they're dealing with (we've all been there, right?)
+5. Some relevant keywords for SEO (gotta keep the search engines happy!)
 
-Return the response in this exact JSON format:
+Format everything in this JSON (I know, I know, switching to technical mode for a sec):
 {
-  "headlines": [
-    "Your First Headline Here",
-    "Another Great Topic Idea",
-    "Something Readers Will Love"
-  ],
+  "headlines": string[],
   "analysis": {
-    "tone": "balanced mix of professional and approachable",
-    "impact": "what readers will gain from this content",
-    "summary": "natural overview of the topic's value and relevance",
-    "keywords": ["relevant", "keyword", "phrases"],
-    "suggestions": [
-      "specific content angle to explore",
-      "interesting perspective to consider"
-    ]
+    "summary": string,
+    "keywords": string[],
+    "tone": string,
+    "targetAudience": string,
+    "painPoints": string[]
   }
 }
 
-Topic: ${content}
-Style: blog
-Tone: ${tone}
-Number of ideas: ${count}
-
-Guidelines:
-- Keep descriptions clear but conversational
-- Focus on real value and practical insights
-- Include specific examples where relevant
-- Address reader questions and pain points
-- Maintain professionalism while being approachable`;
+Remember:
+- Write like you're explaining it to a friend
+- Keep it real and relatable
+- Don't be afraid to show some personality
+- Focus on actual problems people face
+- Skip the corporate jargon - we're all humans here!`;
 
 const createCTAPrompt = (content: string, tone: string, count: number) => `Create compelling call-to-action (CTA) ideas for the following purpose. Write in a persuasive yet natural style that motivates action while building trust. Balance professionalism with emotional connection, and focus on clear value propositions.
 
@@ -221,6 +212,36 @@ const createSystemPrompt = (content: string, tone: string, count: number) => `Yo
 Content: ${content}
 Tone: ${tone}
 Count: ${count}`;
+
+const createHeadlinePrompt = (content: string, style: string, tone: string, count: number) => `Generate ${count} compelling headlines for content about "${content}".
+
+Style: ${style}
+Tone: ${tone}
+
+Guidelines:
+- Create attention-grabbing headlines that drive engagement
+- Include strong action words and emotional triggers
+- Focus on benefits and value proposition
+- Keep headlines concise and impactful
+- Optimize for both readers and SEO
+- Avoid clickbait while maintaining interest
+
+Format:
+{
+  "headlines": string[],
+  "analysis": {
+    "tone": string,
+    "impact": string,
+    "suggestions": string[]
+  }
+}
+
+Requirements:
+- Headlines should be clear and specific
+- Include numbers and data when relevant
+- Use proven headline formulas
+- Maintain professional quality
+- Consider target audience needs`;
 
 // Update the generatePrompt function to use the new template functions
 const generatePrompt = (inputContent: string, inputOptions: {
@@ -393,25 +414,58 @@ async function makeGeminiRequest(prompt: string, apiKey: string, retryCount = 0)
     const response = await axios.post(
       `${GEMINI_API_URL}?key=${apiKey}`,
       {
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
         generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
         },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
       },
       {
-        timeout: INITIAL_TIMEOUT * Math.pow(BACKOFF_MULTIPLIER, retryCount),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: INITIAL_TIMEOUT * Math.pow(BACKOFF_MULTIPLIER, retryCount)
       }
     );
-    return response.data;
+
+    const generatedText = response.data.candidates[0].content.parts[0].text;
+    try {
+      return JSON.parse(generatedText);
+    } catch (parseError) {
+      console.error('Failed to parse response:', generatedText);
+      throw new Error('Invalid response format from API');
+    }
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(BACKOFF_MULTIPLIER, retryCount)));
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
       return makeGeminiRequest(prompt, apiKey, retryCount + 1);
     }
-    throw error;
+    console.error('API Error:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error?.message || 'Failed to generate content');
   }
 }
 
@@ -424,33 +478,43 @@ export const analyzeContent = async (
   return response;
 };
 
-export const generateHeadlines = async (
+export async function generateHeadlines(
   content: string,
   apiKey: string,
   options: {
-    style?: 'professional' | 'creative' | 'news' | 'blog' | 'social' | 'cta';
+    style?: 'professional' | 'creative' | 'news' | 'blog' | 'social';
     tone?: 'formal' | 'casual' | 'persuasive' | 'informative';
     count?: number;
   } = {}
-): Promise<HeadlineGenerationResponse> => {
-  const promptOptions = {
-    style: 'blog' as const,
-    tone: options.tone,
-    count: options.count
-  };
-  const prompt = generatePrompt(content, promptOptions);
-  const response = await makeGeminiRequest(prompt, apiKey);
-  const headlines = filterBannedKeywordsFromHeadlines(response.headlines || []);
-  return {
-    headlines,
-    analysis: response.analysis || {
-      tone: '',
-      impact: '',
-      suggestions: [],
-      summary: ''
+): Promise<HeadlineGenerationResponse> {
+  const count = options.count || 5;
+  const style = options.style || 'professional';
+  const tone = options.tone || 'balanced';
+  
+  const prompt = createHeadlinePrompt(content, style, tone, count);
+
+  try {
+    const response = await makeGeminiRequest(prompt, apiKey);
+    
+    // Ensure we have the expected structure
+    if (!response || !response.headlines || !response.analysis) {
+      console.error('Invalid response structure:', response);
+      throw new Error('Invalid response from API');
     }
-  };
-};
+
+    return {
+      headlines: response.headlines,
+      analysis: {
+        tone: response.analysis.tone || tone,
+        impact: response.analysis.impact || '',
+        suggestions: response.analysis.suggestions || []
+      }
+    };
+  } catch (error) {
+    console.error('Error in generateHeadlines:', error);
+    throw error;
+  }
+}
 
 export const generateCTA = async (
   content: string,
