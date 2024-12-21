@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import { generateHeadlines } from '../../services/geminiService';
+import { generateCTA } from '../../services/geminiService';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { ErrorMessage } from '../../components/ErrorMessage';
 import { ArrowLeft, MousePointerClick, Copy, Check, Sparkles } from 'lucide-react';
@@ -43,16 +43,15 @@ export default function CTAGenerator() {
     setLoading(true);
     setError('');
     try {
-      const result = await generateHeadlines(purpose, import.meta.env.VITE_GEMINI_API_KEY, {
+      const result = await generateCTA(purpose, import.meta.env.VITE_GEMINI_API_KEY, {
         count: 5,
-        style: 'cta',
         tone: 'persuasive'
       });
       
-      // Transform headlines into CTA ideas with proper type checking
-      const newCTAs = (result.headlines || []).map(cta => ({
-        text: cta || '',
-        description: result.analysis?.summary || 'No description available',
+      // Transform headlines into CTA ideas
+      const newCTAs = result.headlines.map((cta, index) => ({
+        text: cta,
+        description: result.analysis?.suggestions?.[index] || '',
         type: result.analysis?.type || 'General',
         urgency: (result.analysis?.urgency || 'medium') as 'low' | 'medium' | 'high',
         suggestions: result.analysis?.suggestions || [],
@@ -61,7 +60,7 @@ export default function CTAGenerator() {
       }));
       
       setCTAs(newCTAs);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || 'Failed to generate CTAs');
     } finally {
       setLoading(false);
@@ -76,209 +75,199 @@ export default function CTAGenerator() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="sticky top-0 z-10 bg-opacity-80 backdrop-blur-sm bg-white dark:bg-gray-900 pb-4">
-        <div className="flex items-center mb-6">
+    <div className={clsx(
+      'min-h-screen',
+      darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
+    )}>
+      {/* Header */}
+      <header className={clsx(
+        'sticky top-0 z-50 border-b backdrop-blur-sm',
+        darkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white/90 border-gray-200'
+      )}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
           <Link
             to="/dashboard"
             className={clsx(
-              'p-2 rounded-lg mr-4 hover:bg-gray-100 dark:hover:bg-gray-800',
-              'transition-colors duration-200'
+              'flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 transition-colors',
+              darkMode 
+                ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
             )}
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </Link>
-          <h1 className="text-2xl font-bold">CTA Generator</h1>
         </div>
+      </header>
 
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="purpose"
-              className={clsx(
-                'block text-sm font-medium mb-2',
-                darkMode ? 'text-gray-200' : 'text-gray-700'
-              )}
-            >
-              What's the purpose of your CTA?
-            </label>
-            <textarea
-              id="purpose"
-              rows={3}
-              className={clsx(
-                'w-full px-4 py-2 rounded-lg border',
-                'focus:outline-none focus:ring-2',
-                darkMode
-                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
-                  : 'bg-white border-gray-300 focus:ring-blue-500'
-              )}
-              placeholder="e.g., Get users to sign up for our newsletter, Download our free ebook, etc."
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
-            />
+      {/* Main Content */}
+      <main className="px-4 py-6 sm:py-8">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Title Section */}
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <MousePointerClick className={clsx(
+                'w-8 h-8',
+                darkMode ? 'text-blue-400' : 'text-blue-600'
+              )} />
+              <h1 className="text-2xl sm:text-3xl font-bold">CTA Generator</h1>
+            </div>
+            <p className={clsx(
+              'text-sm',
+              darkMode ? 'text-gray-400' : 'text-gray-600'
+            )}>
+              Create compelling calls-to-action that convert
+            </p>
           </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className={clsx(
-              'w-full py-2 px-4 rounded-lg',
-              'font-medium text-white',
-              'transition-colors duration-200',
-              'flex items-center justify-center',
-              loading
-                ? 'bg-blue-400 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600'
-            )}
-          >
-            {loading ? (
-              <LoadingSpinner className="w-5 h-5" />
-            ) : (
-              'Generate CTAs'
-            )}
-          </button>
+          {/* Input Form */}
+          <div className={clsx(
+            'rounded-xl p-4 sm:p-6 space-y-6',
+            darkMode ? 'bg-gray-800' : 'bg-white shadow-lg'
+          )}>
+            <div>
+              <label className={clsx(
+                'block text-sm font-medium mb-2',
+                darkMode ? 'text-gray-300' : 'text-gray-700'
+              )}>
+                CTA Purpose
+              </label>
+              <textarea
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                placeholder="What do you want your users to do? (e.g., Sign up for newsletter, Download ebook, Start free trial)"
+                rows={4}
+                className={clsx(
+                  'w-full px-3 py-2 rounded-lg',
+                  'border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none',
+                  darkMode
+                    ? 'bg-gray-900 border-gray-700 text-gray-100'
+                    : 'bg-white border-gray-200 text-gray-900'
+                )}
+              />
+            </div>
 
-          {error && <ErrorMessage message={error} />}
-        </div>
-      </div>
-
-      {/* Results Section */}
-      {CTAs.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-6 mt-8"
-        >
-          {CTAs.map((cta, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+            <button
+              onClick={handleGenerate}
+              disabled={loading || !purpose.trim()}
               className={clsx(
-                'p-6 rounded-lg border relative',
-                darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
+                'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors',
+                loading || !purpose.trim()
+                  ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
               )}
             >
-              <button
-                onClick={() => copyToClipboard(index)}
-                className={clsx(
-                  'absolute top-4 right-4 p-2 rounded-lg',
-                  'transition-colors duration-200',
-                  darkMode
-                    ? 'hover:bg-gray-700'
-                    : 'hover:bg-gray-100'
-                )}
-              >
-                {copiedIndex === index ? (
-                  <Check className="w-5 h-5 text-green-500" />
-                ) : (
-                  <Copy className="w-5 h-5" />
-                )}
-              </button>
-
-              <div className="mb-4">
-                <h2 className={clsx(
-                  'text-xl font-semibold mb-2',
-                  darkMode ? 'text-white' : 'text-gray-900'
-                )}>
-                  {cta.text}
-                </h2>
-                <div className={clsx(
-                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                  cta.urgency === 'high' 
-                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    : cta.urgency === 'medium'
-                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                    : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                )}>
-                  {cta.urgency.charAt(0).toUpperCase() + cta.urgency.slice(1)} Urgency
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner className="w-5 h-5" />
+                  <span>Generating...</span>
                 </div>
-              </div>
-
-              <div className="mb-4">
-                <h3 className={clsx(
-                  'text-sm font-semibold mb-2',
-                  darkMode ? 'text-gray-300' : 'text-gray-700'
-                )}>
-                  Strategy & Impact
-                </h3>
-                <p className={clsx(
-                  'mb-2',
-                  darkMode ? 'text-gray-400' : 'text-gray-600'
-                )}>
-                  {cta.description}
-                </p>
-                <p className={clsx(
-                  darkMode ? 'text-gray-400' : 'text-gray-600'
-                )}>
-                  <span className="font-medium">Expected Impact:</span> {cta.impact}
-                </p>
-              </div>
-
-              {cta.suggestions.length > 0 && (
-                <div className="mb-4">
-                  <h3 className={clsx(
-                    'text-sm font-semibold mb-2',
-                    darkMode ? 'text-gray-300' : 'text-gray-700'
-                  )}>
-                    Implementation Tips
-                  </h3>
-                  <ul className={clsx(
-                    'list-disc list-inside space-y-1',
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
-                  )}>
-                    {cta.suggestions.map((suggestion, sIndex) => (
-                      <li key={sIndex}>{suggestion}</li>
-                    ))}
-                  </ul>
-                </div>
+              ) : (
+                <>
+                  <MousePointerClick className="w-5 h-5" />
+                  Generate CTAs
+                </>
               )}
+            </button>
 
-              {cta.variations.length > 0 && (
-                <div className="mt-4">
-                  <h3 className={clsx(
-                    'text-sm font-semibold mb-2',
-                    darkMode ? 'text-gray-300' : 'text-gray-700'
-                  )}>
-                    A/B Testing Variations
-                  </h3>
-                  <div className="space-y-3">
-                    {cta.variations.map((variation, vIndex) => (
-                      <div
-                        key={vIndex}
-                        className={clsx(
-                          'p-3 rounded-lg',
-                          darkMode ? 'bg-gray-800' : 'bg-gray-50'
+            {error && <ErrorMessage message={error} />}
+          </div>
+
+          {/* Results */}
+          {CTAs.length > 0 && (
+            <div className={clsx(
+              'rounded-xl p-4 sm:p-6 space-y-6',
+              darkMode ? 'bg-gray-800' : 'bg-white shadow-lg'
+            )}>
+              <h2 className="text-xl font-semibold">Generated CTAs</h2>
+              
+              <div className="space-y-4">
+                {CTAs.map((cta, index) => (
+                  <div
+                    key={index}
+                    className={clsx(
+                      'p-4 rounded-lg',
+                      darkMode
+                        ? 'bg-gray-900/50'
+                        : 'bg-gray-50'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-lg font-medium">{cta.text}</h3>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className={clsx(
+                            'text-xs font-medium px-2 py-1 rounded-full',
+                            cta.urgency === 'high' 
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                              : cta.urgency === 'medium'
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
+                          )}>
+                            {cta.urgency.charAt(0).toUpperCase() + cta.urgency.slice(1)} Urgency
+                          </span>
+                          <span className={clsx(
+                            'text-xs font-medium px-2 py-1 rounded-full',
+                            darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                          )}>
+                            {cta.type}
+                          </span>
+                        </div>
+
+                        {cta.impact && (
+                          <p className={clsx(
+                            'text-sm',
+                            darkMode ? 'text-gray-400' : 'text-gray-600'
+                          )}>
+                            {cta.impact}
+                          </p>
                         )}
+                      </div>
+
+                      <button
+                        onClick={() => copyToClipboard(index)}
+                        className={clsx(
+                          'p-2 rounded-lg transition-colors',
+                          darkMode
+                            ? 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                            : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                        )}
+                        title={copiedIndex === index ? 'Copied!' : 'Copy to clipboard'}
                       >
-                        <p className={clsx(
-                          'font-medium mb-1',
+                        {copiedIndex === index ? (
+                          <Check className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+
+                    {cta.suggestions.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <h4 className={clsx(
+                          'text-sm font-medium',
                           darkMode ? 'text-gray-300' : 'text-gray-700'
                         )}>
-                          {variation.text}
-                        </p>
-                        <p className={clsx(
-                          'text-sm',
+                          Implementation Tips
+                        </h4>
+                        <ul className={clsx(
+                          'list-disc list-inside space-y-1 text-sm',
                           darkMode ? 'text-gray-400' : 'text-gray-600'
                         )}>
-                          <span className="font-medium">When to use:</span> {variation.context}
-                        </p>
-                        <p className={clsx(
-                          'text-sm',
-                          darkMode ? 'text-gray-400' : 'text-gray-600'
-                        )}>
-                          <span className="font-medium">Target audience:</span> {variation.audience}
-                        </p>
+                          {cta.suggestions.map((tip, tipIndex) => (
+                            <li key={tipIndex}>{tip}</li>
+                          ))}
+                        </ul>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

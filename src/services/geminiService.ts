@@ -157,55 +157,51 @@ Remember:
 - Focus on actual problems people face
 - Skip the corporate jargon - we're all humans here!`;
 
-const createCTAPrompt = (content: string, tone: string, count: number) => `Create compelling call-to-action (CTA) ideas for the following purpose. Write in a persuasive yet natural style that motivates action while building trust. Balance professionalism with emotional connection, and focus on clear value propositions.
+const createCTAPrompt = (content: string, tone: string, count: number) => `Generate ${count} persuasive call-to-action (CTA) variations for the following purpose: "${content}"
 
-For each CTA idea, provide:
-- A strong, action-oriented headline
-- The psychological principle behind it
-- Target audience motivation
-- Best placement suggestions
-- A/B testing variations
+Guidelines:
+- Create clear, action-oriented CTAs
+- Focus on value proposition and benefits
+- Use strong action verbs
+- Create urgency when appropriate
+- Keep it concise and impactful
+- Optimize for conversion
 
-Return the response in this exact JSON format:
+Format the response in this JSON structure:
 {
   "headlines": [
-    "Primary CTA Text Here",
-    "Another Compelling Option",
-    "Value-Focused Call to Action"
+    "Primary CTA text here",
+    "Another CTA variation here"
   ],
   "analysis": {
-    "tone": "persuasive yet trustworthy approach",
-    "impact": "expected conversion impact and why",
-    "summary": "strategic overview and psychological triggers used",
+    "type": "Type of CTA (e.g., Sign-up, Download, Purchase)",
+    "urgency": "low | medium | high",
+    "impact": "Expected impact and effectiveness",
     "suggestions": [
-      "placement recommendation",
-      "timing suggestion",
-      "audience targeting tip"
+      "Implementation tip 1",
+      "Implementation tip 2"
     ],
     "variations": [
       {
-        "text": "alternative version",
-        "context": "when to use this variant",
-        "audience": "specific audience segment"
+        "text": "Alternative CTA text",
+        "context": "When to use this variation",
+        "audience": "Target audience"
       }
-    ],
-    "urgency": "balanced" | "high" | "low",
-    "type": "action type (e.g., purchase, signup, download)"
+    ]
   }
 }
 
-Purpose: ${content}
-Style: cta
-Tone: ${tone}
-Number of CTAs: ${count}
-
-Guidelines:
+Requirements:
+- Each CTA should be actionable and clear
+- Include power words that drive action
+- Consider user psychology and motivation
+- Maintain brand professionalism
 - Focus on clear value proposition
 - Use action-oriented language
 - Create urgency without being pushy
 - Build trust through transparency
 - Test different emotional triggers
-- Consider user journey stage`;
+- Focus on conversion optimization`;
 
 const createSystemPrompt = (content: string, tone: string, count: number) => `You are an advanced content optimization AI. Analyze the provided content and return a detailed JSON response.
 
@@ -223,6 +219,11 @@ Guidelines:
 - Include strong action words and emotional triggers
 - Focus on benefits and value proposition
 - Keep headlines concise and impactful
+- Focus on clear value proposition
+- Use action-oriented language
+- Create urgency without being pushy
+- Build trust through transparency
+- Test different emotional triggers
 - Optimize for both readers and SEO
 - Avoid clickbait while maintaining interest
 
@@ -520,25 +521,35 @@ export const generateCTA = async (
   content: string,
   apiKey: string,
   options: {
-    style?: 'persuasive' | 'informative' | 'urgent' | 'friendly';
-    tone?: 'professional' | 'casual' | 'formal';
+    tone?: 'formal' | 'casual' | 'persuasive' | 'informative';
     count?: number;
   } = {}
-): Promise<CTAGenerationResponse> => {
-  const promptOptions = {
-    style: 'cta' as const,
-    tone: options.tone,
-    count: options.count
-  };
-  const prompt = generatePrompt(content, promptOptions);
-  const response = await makeGeminiRequest(prompt, apiKey);
-  const ctas = filterBannedKeywordsFromCTAs(response.ctas || []);
-  return {
-    ctas,
-    analysis: response.analysis || {
-      tone: '',
-      urgency: '',
-      effectiveness: ''
+): Promise<HeadlineGenerationResponse> => {
+  const count = options.count || 3;
+  const tone = options.tone || 'persuasive';
+  const prompt = createCTAPrompt(content, tone, count);
+
+  try {
+    const response = await makeGeminiRequest(prompt, apiKey);
+    
+    // Ensure we have the expected structure
+    if (!response || !response.headlines) {
+      console.error('Invalid response structure:', response);
+      throw new Error('Invalid response from API');
     }
-  };
+
+    return {
+      headlines: response.headlines,
+      analysis: {
+        type: response.analysis?.type || '',
+        urgency: response.analysis?.urgency || 'medium',
+        impact: response.analysis?.impact || '',
+        suggestions: response.analysis?.suggestions || [],
+        variations: response.analysis?.variations || []
+      }
+    };
+  } catch (error) {
+    console.error('Error in generateCTA:', error);
+    throw error;
+  }
 };
